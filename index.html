@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGX Synthesize Hub</title>
-    <!-- Tailwind CSS -->
+    <title>SGX Synthesize Hub | AI Studio Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js Core -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls para el pilar Showcase -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
@@ -18,9 +15,9 @@
         /* El Canvas vive en el fondo */
         #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
         
-        /* SGX Glassmorphism UI - Ajustado para no bloquear clicks */
+        /* SGX Glassmorphism UI */
         .sgx-glass {
-            background: rgba(15, 20, 30, 0.7);
+            background: rgba(15, 20, 30, 0.75);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(50, 82, 123, 0.5);
@@ -40,7 +37,17 @@
             box-shadow: 0 0 20px rgba(253, 204, 13, 0.6);
         }
 
-        /* Ubershaders (CSS Filters sobre el canvas wrapper para no romper WebGL) */
+        /* Console Box para los Prompts de AI Studio */
+        .ai-console {
+            background: rgba(0, 0, 0, 0.85);
+            border: 1px solid #32527B;
+            border-left: 3px solid #00ffff;
+            font-family: monospace;
+        }
+        .ai-console::-webkit-scrollbar { width: 6px; }
+        .ai-console::-webkit-scrollbar-thumb { background: #32527B; border-radius: 4px; }
+
+        /* Ubershaders */
         .stage-cyberpunk canvas { filter: contrast(1.3) saturate(1.8) hue-rotate(25deg); }
         .stage-fire canvas { filter: sepia(1) hue-rotate(-50deg) saturate(2.5) contrast(1.3); }
         .stage-clean canvas { filter: none; }
@@ -51,142 +58,199 @@
 </head>
 <body>
 
-    <!-- 3D Engine Background (Interactuable) -->
     <div id="canvas-container" class="stage-clean"></div>
 
-    <!-- UI Overlay (pointer-events-none permite interactuar con el 3D detrás) -->
     <div id="ui-layer" class="absolute inset-0 z-10 flex flex-col justify-between p-6 pointer-events-none">
         
-        <!-- Header -->
-        <header class="flex justify-between items-center w-full max-w-5xl mx-auto pointer-events-auto">
+        <header class="flex justify-between items-center w-full max-w-6xl mx-auto pointer-events-auto">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full border-2 border-[#FDCC0D] flex items-center justify-center font-bold text-[#FDCC0D] shadow-[0_0_10px_rgba(253,204,13,0.5)]">S</div>
-                <h1 class="text-2xl font-bold tracking-widest uppercase text-white">SGX<span class="text-[#32527B]">.</span>Synthesize <span class="text-[#FDCC0D] text-sm ml-2">HUB</span></h1>
+                <h1 class="text-2xl font-bold tracking-widest uppercase text-white">SGX<span class="text-[#32527B]">.</span>Synthesize <span class="text-[#00ffff] text-sm ml-2">HUB | AI STUDIO</span></h1>
             </div>
             <div class="text-sm tracking-widest text-[#FDCC0D] font-bold sgx-glass px-4 py-2 rounded" id="step-indicator">FASE: 01/06</div>
         </header>
 
-        <!-- Main Content Area -->
-        <main class="flex-1 flex items-center justify-end w-full max-w-5xl mx-auto pointer-events-none">
-            <!-- El panel de cristal tiene pointer-events-auto para que los inputs funcionen -->
-            <div class="sgx-glass rounded-xl p-8 w-full max-w-md relative overflow-hidden pointer-events-auto border-t-4 border-t-[#FDCC0D]">
-                
-                <!-- PROGRESS BAR -->
+        <main class="flex-1 flex items-center justify-center w-full max-w-6xl mx-auto pointer-events-none mt-4">
+            
+            <div class="sgx-glass rounded-xl p-8 w-full relative overflow-hidden pointer-events-auto border-t-4 border-t-[#FDCC0D]">
                 <div class="absolute top-0 left-0 h-1 bg-[#FDCC0D] transition-all duration-500 shadow-[0_0_10px_#FDCC0D]" id="progress-bar" style="width: 16%;"></div>
 
-                <!-- STATE 0: SYSTEM (Login) -->
-                <div id="state-system" class="state-panel">
-                    <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 01</span>
-                    <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.System</h2>
-                    <p class="text-sm text-gray-300 mb-6">Inicializa la infraestructura. Conecta tu perfil corporativo para forjar tu ecosistema inmersivo.</p>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">Email Corporativo</label>
-                            <input type="email" id="input-email" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:ring-1 focus:ring-[#FDCC0D] focus:outline-none transition-all" placeholder="director@tumarca.com">
+                <div id="state-system" class="state-panel grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 01</span>
+                        <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.System</h2>
+                        <p class="text-sm text-gray-300 mb-6">Inicializa la infraestructura. Conecta tu perfil corporativo para forjar tu ecosistema inmersivo.</p>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">Email Corporativo</label>
+                                <input type="email" id="input-email" oninput="updatePrompts()" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:ring-1 focus:outline-none transition-all" placeholder="director@tumarca.com">
+                            </div>
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">Identidad de Marca</label>
+                                <input type="text" id="input-brand" oninput="updatePrompts()" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:ring-1 focus:outline-none transition-all" placeholder="Tu Marca">
+                            </div>
+                            <button onclick="nextState(1)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">INICIALIZAR MOTOR</button>
                         </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">Identidad de Marca</label>
-                            <input type="text" id="input-brand" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:ring-1 focus:ring-[#FDCC0D] focus:outline-none transition-all" placeholder="Nombre de tu Empresa">
+                    </div>
+                    <div class="ai-console p-4 rounded flex flex-col">
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                            <span class="text-xs font-bold text-[#00ffff]">>_ GOOGLE AI STUDIO PROMPT</span>
+                            <button onclick="copyPrompt('prompt-system')" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">Copiar</button>
                         </div>
-                        <button onclick="nextState(1)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">INICIALIZAR MOTOR</button>
+                        <p id="prompt-system" class="text-gray-300 text-sm whitespace-pre-wrap overflow-y-auto flex-1">Actúa como SGX Chief of Staff y Senior WebGL Developer de Spatialgineers.
+
+Crea la infraestructura base (HTML5 + TailwindCSS) para una aplicación de computación espacial para la marca "<span class="pm-brand text-[#FDCC0D]">Tu Marca</span>". 
+El email del administrador será "<span class="pm-email text-[#FDCC0D]">director@tumarca.com</span>".
+
+Incluye el CDN de Three.js y prepara un div con id "canvas-container" de tamaño 100vw y 100vh donde vivirá la experiencia inmersiva.</p>
                     </div>
                 </div>
 
-                <!-- STATE 1: SHOWCASE (Visuals) -->
-                <div id="state-showcase" class="state-panel hidden-state">
-                    <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 02</span>
-                    <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Showcase</h2>
-                    <p class="text-sm text-gray-300 mb-4">La presencia importa. <b>Arrastra el modelo 3D en el fondo para rotarlo.</b> Ajusta sus materiales para alinearlo a tu marca.</p>
-                    <div class="space-y-5 bg-black/40 p-4 rounded border border-gray-700">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Color Primario (Hex)</label>
-                            <input type="color" id="input-color" value="#32527B" onchange="updateShowcase()" class="w-full h-12 bg-transparent rounded cursor-pointer">
+                <div id="state-showcase" class="state-panel hidden-state grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 02</span>
+                        <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Showcase</h2>
+                        <p class="text-sm text-gray-300 mb-4">La presencia importa. <b>Arrastra el modelo 3D para rotarlo.</b> Ajusta sus materiales para alinearlo a tu marca.</p>
+                        <div class="space-y-5 bg-black/40 p-4 rounded border border-gray-700">
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Color Primario (Hex)</label>
+                                <input type="color" id="input-color" value="#32527B" oninput="updateShowcase()" class="w-full h-12 bg-transparent rounded cursor-pointer">
+                            </div>
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Pulido del Material (Roughness)</label>
+                                <input type="range" id="input-roughness" min="0" max="1" step="0.1" value="0.2" oninput="updateShowcase()" class="w-full accent-[#FDCC0D]">
+                            </div>
                         </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Pulido del Material (Roughness)</label>
-                            <input type="range" id="input-roughness" min="0" max="1" step="0.1" value="0.2" onchange="updateShowcase()" class="w-full accent-[#FDCC0D]">
-                        </div>
+                        <button onclick="nextState(2)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">FIJAR ASSET 3D</button>
                     </div>
-                    <button onclick="nextState(2)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">FIJAR ASSET 3D</button>
-                </div>
+                    <div class="ai-console p-4 rounded flex flex-col">
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                            <span class="text-xs font-bold text-[#00ffff]">>_ GOOGLE AI STUDIO PROMPT</span>
+                            <button onclick="copyPrompt('prompt-showcase')" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">Copiar</button>
+                        </div>
+                        <p id="prompt-showcase" class="text-gray-300 text-sm whitespace-pre-wrap overflow-y-auto flex-1">Escribe el código JavaScript usando Three.js para añadir un Icosaedro al canvas.
 
-                <!-- STATE 2: SPARK (Physics/Game) -->
-                <div id="state-spark" class="state-panel hidden-state">
-                    <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 03</span>
-                    <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Spark</h2>
-                    <p class="text-sm text-gray-300 mb-4">Añade retención mediante mecánicas de juego. <b>Haz clic en el núcleo 3D para probar la interacción.</b> Luego, ajusta la dificultad.</p>
-                    <div class="space-y-5 bg-black/40 p-4 rounded border border-gray-700">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Velocidad del Entorno (Fricción)</label>
-                            <input type="range" id="input-speed" min="0.01" max="0.15" step="0.01" value="0.02" onchange="updateSpark()" class="w-full accent-[#FDCC0D]">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Escala del Mundo</label>
-                            <input type="range" id="input-scale" min="0.5" max="2" step="0.1" value="1" onchange="updateSpark()" class="w-full accent-[#FDCC0D]">
-                        </div>
-                    </div>
-                    <button onclick="nextState(3)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">INYECTAR FÍSICAS</button>
-                </div>
+Aplica un MeshStandardMaterial. 
+Configura el color del objeto a hex: <span class="pm-color text-[#FDCC0D]">#32527B</span> y la propiedad roughness a <span class="pm-roughness text-[#FDCC0D]">0.2</span> para igualar la identidad de "<span class="pm-brand text-[#FDCC0D]">Tu Marca</span>".
 
-                <!-- STATE 3: STORY (Narrative) -->
-                <div id="state-story" class="state-panel hidden-state">
-                    <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 04</span>
-                    <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Story</h2>
-                    <p class="text-sm text-gray-300 mb-6">Todo ecosistema requiere un conflicto y una resolución. Define el hilo conductor de tu marca.</p>
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">El Enemigo a Derrotar</label>
-                            <input type="text" id="input-enemy" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:outline-none" placeholder="Ej: Contenido Aburrido">
-                        </div>
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">El Objetivo / Recompensa</label>
-                            <input type="text" id="input-goal" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:outline-none" placeholder="Ej: Lealtad Absoluta">
-                        </div>
-                        <button onclick="nextState(4)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">GUARDAR LORE</button>
+Añade un wireframe amarillo alrededor y luces de ambiente y de punto para iluminar correctamente los materiales PBR.</p>
                     </div>
                 </div>
 
-                <!-- STATE 4: STAGE (Shaders) -->
-                <div id="state-stage" class="state-panel hidden-state">
-                    <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 05</span>
-                    <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Stage</h2>
-                    <p class="text-sm text-gray-300 mb-6">Aplica el Ubershader. Define la atmósfera visual (VFX) que rodeará la experiencia inmersiva de tu marca.</p>
-                    <div class="grid grid-cols-1 gap-3 mb-6">
-                        <button onclick="setShader('stage-clean')" class="bg-gray-800 border-2 border-gray-500 rounded py-3 text-sm font-bold tracking-widest hover:border-white transition-all">ESTUDIO CLEAN</button>
-                        <button onclick="setShader('stage-cyberpunk')" class="bg-[#0f1b29] border-2 border-[#00ffff] text-[#00ffff] rounded py-3 text-sm font-bold tracking-widest hover:bg-[#00ffff] hover:text-black transition-all">NEÓN / GLITCH</button>
-                        <button onclick="setShader('stage-fire')" class="bg-[#2a0e05] border-2 border-[#ff5500] text-[#ff5500] rounded py-3 text-sm font-bold tracking-widest hover:bg-[#ff5500] hover:text-black transition-all">NCANDELA (FUEGO)</button>
+                <div id="state-spark" class="state-panel hidden-state grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 03</span>
+                        <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Spark</h2>
+                        <p class="text-sm text-gray-300 mb-4">Añade retención mediante mecánicas. <b>Haz clic en el núcleo 3D para probar la interacción.</b> Ajusta la fricción.</p>
+                        <div class="space-y-5 bg-black/40 p-4 rounded border border-gray-700">
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Velocidad del Entorno</label>
+                                <input type="range" id="input-speed" min="0.01" max="0.15" step="0.01" value="0.02" oninput="updateSpark()" class="w-full accent-[#FDCC0D]">
+                            </div>
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-2 font-bold">Escala del Mundo</label>
+                                <input type="range" id="input-scale" min="0.5" max="2" step="0.1" value="1" oninput="updateSpark()" class="w-full accent-[#FDCC0D]">
+                            </div>
+                        </div>
+                        <button onclick="nextState(3)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">INYECTAR FÍSICAS</button>
                     </div>
-                    <button onclick="nextState(5)" class="sgx-button w-full py-4 mt-2 font-bold tracking-widest text-white">APROBAR ATMÓSFERA</button>
+                    <div class="ai-console p-4 rounded flex flex-col">
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                            <span class="text-xs font-bold text-[#00ffff]">>_ GOOGLE AI STUDIO PROMPT</span>
+                            <button onclick="copyPrompt('prompt-spark')" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">Copiar</button>
+                        </div>
+                        <p id="prompt-spark" class="text-gray-300 text-sm whitespace-pre-wrap overflow-y-auto flex-1">Implementa el pilar SGX.Spark de gamificación.
+
+Añade un Raycaster en Three.js. Cuando el usuario haga clic en el modelo 3D, haz que el objeto reaccione visualmente (cambio de escala temporal y brillo emisivo).
+
+Configura el Game Loop (requestAnimationFrame) para que el objeto 3D rote a una velocidad de <span class="pm-speed text-[#FDCC0D]">0.02</span> en los ejes X y Y constantemente, y escala su tamaño base a <span class="pm-scale text-[#FDCC0D]">1</span>.</p>
+                    </div>
                 </div>
 
-                <!-- STATE 5: SYNTHESIZE (Compile) -->
+                <div id="state-story" class="state-panel hidden-state grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 04</span>
+                        <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Story</h2>
+                        <p class="text-sm text-gray-300 mb-6">Define el hilo conductor de tu marca para guiar al usuario.</p>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">El Enemigo a Derrotar</label>
+                                <input type="text" id="input-enemy" oninput="updatePrompts()" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:outline-none" placeholder="Contenido Aburrido">
+                            </div>
+                            <div>
+                                <label class="block text-xs uppercase tracking-wider text-[#FDCC0D] mb-1 font-bold">El Objetivo / Recompensa</label>
+                                <input type="text" id="input-goal" oninput="updatePrompts()" class="w-full bg-black/60 border border-gray-600 rounded px-4 py-3 text-white focus:border-[#FDCC0D] focus:outline-none" placeholder="Retención Total">
+                            </div>
+                            <button onclick="nextState(4)" class="sgx-button w-full py-4 mt-6 font-bold tracking-widest text-white">GUARDAR LORE</button>
+                        </div>
+                    </div>
+                    <div class="ai-console p-4 rounded flex flex-col">
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                            <span class="text-xs font-bold text-[#00ffff]">>_ GOOGLE AI STUDIO PROMPT</span>
+                            <button onclick="copyPrompt('prompt-story')" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">Copiar</button>
+                        </div>
+                        <p id="prompt-story" class="text-gray-300 text-sm whitespace-pre-wrap overflow-y-auto flex-1">Diseña una interfaz HUD (Heads Up Display) sobrepuesta al Canvas 3D usando TailwindCSS.
+
+El UI debe mostrar la narrativa de la experiencia: "La misión de la marca <span class="pm-brand text-[#FDCC0D]">Tu Marca</span> es alcanzar <span class="pm-goal text-[#FDCC0D]">La Retención Total</span> mediante la eliminación de <span class="pm-enemy text-[#FDCC0D]">El Contenido Estático</span>."
+
+Asegúrate de que la clase CSS tenga 'pointer-events-none' para no bloquear la interacción 3D del SGX.Spark.</p>
+                    </div>
+                </div>
+
+                <div id="state-stage" class="state-panel hidden-state grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div>
+                        <span class="text-xs text-[#32527B] font-bold tracking-widest uppercase mb-1 block">Pilar 05</span>
+                        <h2 class="text-3xl font-bold mb-2 text-white uppercase">SGX.Stage</h2>
+                        <p class="text-sm text-gray-300 mb-6">Aplica el Ubershader. Define la atmósfera visual (VFX).</p>
+                        <div class="grid grid-cols-1 gap-3 mb-6">
+                            <button onclick="setShader('stage-clean')" class="bg-gray-800 border-2 border-gray-500 rounded py-3 text-sm font-bold tracking-widest hover:border-white transition-all">ESTUDIO CLEAN</button>
+                            <button onclick="setShader('stage-cyberpunk')" class="bg-[#0f1b29] border-2 border-[#00ffff] text-[#00ffff] rounded py-3 text-sm font-bold tracking-widest hover:bg-[#00ffff] hover:text-black transition-all">NEÓN / GLITCH</button>
+                            <button onclick="setShader('stage-fire')" class="bg-[#2a0e05] border-2 border-[#ff5500] text-[#ff5500] rounded py-3 text-sm font-bold tracking-widest hover:bg-[#ff5500] hover:text-black transition-all">NCANDELA (FUEGO)</button>
+                        </div>
+                        <button onclick="nextState(5)" class="sgx-button w-full py-4 mt-2 font-bold tracking-widest text-white">APROBAR ATMÓSFERA</button>
+                    </div>
+                    <div class="ai-console p-4 rounded flex flex-col">
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2 mb-3">
+                            <span class="text-xs font-bold text-[#00ffff]">>_ GOOGLE AI STUDIO PROMPT</span>
+                            <button onclick="copyPrompt('prompt-stage')" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">Copiar</button>
+                        </div>
+                        <p id="prompt-stage" class="text-gray-300 text-sm whitespace-pre-wrap overflow-y-auto flex-1">Aplica un Ubershader o CSS Filters globales al contenedor del Canvas 3D para definir el pilar SGX.Stage.
+
+Aplica el estilo visual: <span class="pm-shader text-[#FDCC0D]">stage-clean</span>.
+Por ejemplo, si es cyberpunk usa: `filter: contrast(1.3) saturate(1.8) hue-rotate(25deg);`. Si es NCandela usa filtros anaranjados/rojos.</p>
+                    </div>
+                </div>
+
                 <div id="state-synthesize" class="state-panel hidden-state text-center">
                     <span class="text-xs text-[#FDCC0D] font-bold tracking-widest uppercase mb-1 block animate-pulse">Pilar Final</span>
                     <h2 class="text-4xl font-bold mb-2 text-white uppercase">Synthesize</h2>
-                    <p class="text-sm text-gray-300 mb-6">Tu ecosistema modular está forjado. Compila el Caballo de Troya para probarlo en tu entorno corporativo local.</p>
-                    <div class="bg-black/60 p-5 rounded border border-[#32527B] mb-6 text-left shadow-inner">
-                        <p class="text-xs text-[#FDCC0D] mb-2 font-bold">>_ DATOS CAPTURADOS EN RAM:</p>
-                        <p class="text-xs text-green-400 font-mono leading-relaxed" id="log-output">Procesando...</p>
+                    <p class="text-sm text-gray-300 mb-6">Tu ecosistema modular está forjado. Puedes exportar el prototipo directamente o copiar el prompt maestro para AI Studio.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-black/60 p-5 rounded border border-[#32527B] text-left shadow-inner">
+                            <p class="text-xs text-[#FDCC0D] mb-2 font-bold">>_ APP NORMAL (AUTO-COMPILE):</p>
+                            <button onclick="exportPrototype()" class="sgx-button w-full py-4 text-sm font-bold tracking-widest text-white shadow-[0_0_15px_rgba(253,204,13,0.5)]">EMPAQUETAR HTML INDEPENDIENTE</button>
+                        </div>
+                        <div class="ai-console p-5 rounded text-left">
+                            <p class="text-xs text-[#00ffff] mb-2 font-bold">>_ MODO SYNTHESIZE (AI STUDIO):</p>
+                            <button onclick="copyMasterPrompt()" class="bg-transparent border border-[#00ffff] text-[#00ffff] w-full py-4 text-sm font-bold tracking-widest hover:bg-[#00ffff] hover:text-black transition-all">COPIAR MEGA-PROMPT FINAL</button>
+                        </div>
                     </div>
-                    <button onclick="exportPrototype()" class="sgx-button w-full py-5 text-lg font-bold tracking-widest text-white shadow-[0_0_15px_#FDCC0D]">EMPAQUETAR HTML</button>
-                    <p class="text-[10px] text-gray-500 mt-4 uppercase tracking-wider">Descargará un archivo ejecutable offline con retención de IP de Spatialgineers.</p>
                 </div>
 
             </div>
         </main>
         
-        <!-- Footer -->
         <footer class="w-full text-center text-xs text-gray-500 pb-2 pointer-events-auto">
             Powered by the SGX Framework &bull; Spatialgineers LLC
         </footer>
     </div>
 
-    <!-- CORE LOGIC & ENGINE -->
     <script>
         // --- 1. GLOBAL STATE (THE CONFIG) ---
         const SGXConfig = {
-            email: '',
-            brand: 'Spatialgineers',
+            email: 'director@tumarca.com',
+            brand: 'Tu Marca',
             color: '#32527B',
             roughness: 0.2,
             speed: 0.02,
@@ -208,7 +272,6 @@
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 6;
-            // Posicionamos la cámara ligeramente a la izquierda para balancear el UI que está a la derecha
             camera.position.x = -1.5;
 
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -216,16 +279,12 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            // OrbitControls - Permite interactuar con el mundo 3D en el fondo
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.enablePan = false;
 
-            // Geometry (SGX Core Representation)
             const geometry = new THREE.IcosahedronGeometry(2, 0);
-            
-            // Material
             material = new THREE.MeshStandardMaterial({ 
                 color: SGXConfig.color, 
                 roughness: SGXConfig.roughness, 
@@ -235,15 +294,11 @@
             cube = new THREE.Mesh(geometry, material);
             scene.add(cube);
 
-            // Wireframe outer shell (Identidad de ingeniería de SGX)
             const wireframeGeom = new THREE.IcosahedronGeometry(2.3, 0);
             const wireframeMat = new THREE.MeshBasicMaterial({ color: 0xFDCC0D, wireframe: true, transparent: true, opacity: 0.25 });
-            const wireframeMesh = new THREE.Mesh(wireframeGeom, wireframeMat);
-            cube.add(wireframeMesh);
+            cube.add(new THREE.Mesh(wireframeGeom, wireframeMat));
 
-            // Lighting (Atmosférica y técnica)
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
+            scene.add(new THREE.AmbientLight(0xffffff, 0.6));
             
             const pointLight = new THREE.PointLight(0xffffff, 1.5);
             pointLight.position.set(5, 5, 5);
@@ -253,17 +308,12 @@
             pointLight2.position.set(-5, -5, -5);
             scene.add(pointLight2);
 
-            // Particles in background
             const particlesGeom = new THREE.BufferGeometry();
-            const particlesCount = 700;
-            const posArray = new Float32Array(particlesCount * 3);
-            for(let i=0; i < particlesCount * 3; i++){
-                posArray[i] = (Math.random() - 0.5) * 25;
-            }
+            const posArray = new Float32Array(700 * 3);
+            for(let i=0; i < 2100; i++) posArray[i] = (Math.random() - 0.5) * 25;
             particlesGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
             const particlesMat = new THREE.PointsMaterial({ size: 0.05, color: 0xffffff, transparent: true, opacity: 0.4 });
-            const particlesMesh = new THREE.Points(particlesGeom, particlesMat);
-            scene.add(particlesMesh);
+            scene.add(new THREE.Points(particlesGeom, particlesMat));
 
             animate();
         }
@@ -271,31 +321,23 @@
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
-
-            // Rotación base del objeto
             cube.rotation.x += parseFloat(SGXConfig.speed);
             cube.rotation.y += parseFloat(SGXConfig.speed);
-            
             renderer.render(scene, camera);
         }
 
         // --- 3. INTERACCIÓN (SGX.SPARK GAMIFICATION) ---
         window.addEventListener('click', (event) => {
             if (!isSparkActive) return;
-
-            // Calcular posición del mouse para el raycaster
             mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObject(cube);
 
             if (intersects.length > 0) {
-                // Hook de dopamina: El objeto reacciona al click
                 cube.scale.multiplyScalar(1.2);
                 material.emissive.setHex(0x32527B);
                 material.emissiveIntensity = 0.5;
-
                 setTimeout(() => {
                     cube.scale.set(SGXConfig.scale, SGXConfig.scale, SGXConfig.scale);
                     material.emissive.setHex(0x000000);
@@ -309,78 +351,85 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Initialize 3D Engine on load
         init3D();
 
-        // --- 4. STATE MACHINE LOGIC ---
+        // --- 4. STATE MACHINE & PROMPT UPDATER ---
         const states = ['system', 'showcase', 'spark', 'story', 'stage', 'synthesize'];
-        let currentState = 0;
         
-        function nextState(stateIndex) {
-            // Guardar datos al salir de ciertas fases
-            if(stateIndex === 1) {
-                SGXConfig.email = document.getElementById('input-email').value || 'director@enterprise.com';
-                SGXConfig.brand = document.getElementById('input-brand').value || 'Tu Marca';
-            }
-            if(stateIndex === 4) {
-                SGXConfig.enemy = document.getElementById('input-enemy').value || 'El Contenido Estático';
-                SGXConfig.goal = document.getElementById('input-goal').value || 'La Retención de Usuarios';
-            }
+        function updatePrompts() {
+            SGXConfig.brand = document.getElementById('input-brand').value || 'Tu Marca';
+            SGXConfig.email = document.getElementById('input-email').value || 'director@tumarca.com';
+            SGXConfig.enemy = document.getElementById('input-enemy').value || 'El Contenido Estático';
+            SGXConfig.goal = document.getElementById('input-goal').value || 'La Retención Total';
             
-            // Activar/Desactivar mecánicas de Spark según la fase
-            isSparkActive = (stateIndex === 2);
-
-            if(stateIndex === 5) {
-                document.getElementById('log-output').innerHTML = `
-                    <span class="text-[#FDCC0D]">ID_MARCA:</span> ${SGXConfig.brand}<br>
-                    <span class="text-[#FDCC0D]">MATERIAL_HEX:</span> ${SGXConfig.color}<br>
-                    <span class="text-[#FDCC0D]">FISICAS_ROT:</span> ${SGXConfig.speed}<br>
-                    <span class="text-[#FDCC0D]">NARRATIVA_OBJ:</span> ${SGXConfig.goal.substring(0, 15)}...<br>
-                    <span class="text-[#FDCC0D]">VFX_SHADER:</span> ${SGXConfig.shaderMode.split('-')[1].toUpperCase()}
-                `;
-            }
-
-            // Actualizar el DOM
-            states.forEach((state, index) => {
-                const el = document.getElementById(`state-${state}`);
-                if (index === stateIndex) {
-                    el.classList.remove('hidden-state');
-                } else {
-                    el.classList.add('hidden-state');
-                }
-            });
-
-            currentState = stateIndex;
-            const progress = ((stateIndex + 1) / states.length) * 100;
-            document.getElementById('progress-bar').style.width = `${progress}%`;
-            document.getElementById('step-indicator').innerText = `FASE: 0${stateIndex + 1}/06`;
+            document.querySelectorAll('.pm-brand').forEach(el => el.innerText = SGXConfig.brand);
+            document.querySelectorAll('.pm-email').forEach(el => el.innerText = SGXConfig.email);
+            document.querySelectorAll('.pm-enemy').forEach(el => el.innerText = SGXConfig.enemy);
+            document.querySelectorAll('.pm-goal').forEach(el => el.innerText = SGXConfig.goal);
         }
 
-        // --- 5. REAL-TIME UPDATES ---
         function updateShowcase() {
             SGXConfig.color = document.getElementById('input-color').value;
             SGXConfig.roughness = document.getElementById('input-roughness').value;
             material.color.set(SGXConfig.color);
             material.roughness = SGXConfig.roughness;
+            
+            document.querySelectorAll('.pm-color').forEach(el => el.innerText = SGXConfig.color);
+            document.querySelectorAll('.pm-roughness').forEach(el => el.innerText = SGXConfig.roughness);
         }
 
         function updateSpark() {
             SGXConfig.speed = document.getElementById('input-speed').value;
             SGXConfig.scale = document.getElementById('input-scale').value;
             cube.scale.set(SGXConfig.scale, SGXConfig.scale, SGXConfig.scale);
+
+            document.querySelectorAll('.pm-speed').forEach(el => el.innerText = SGXConfig.speed);
+            document.querySelectorAll('.pm-scale').forEach(el => el.innerText = SGXConfig.scale);
         }
 
         function setShader(mode) {
             SGXConfig.shaderMode = mode;
             document.getElementById('canvas-container').className = mode;
+            document.querySelectorAll('.pm-shader').forEach(el => el.innerText = SGXConfig.shaderMode);
         }
 
-        // --- 6. THE COMPILER (SYNTHESIZE EXPORT) ---
+        function nextState(stateIndex) {
+            isSparkActive = (stateIndex === 2);
+            states.forEach((state, index) => {
+                const el = document.getElementById(`state-${state}`);
+                if (index === stateIndex) el.classList.remove('hidden-state');
+                else el.classList.add('hidden-state');
+            });
+            const progress = ((stateIndex + 1) / states.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('step-indicator').innerText = `FASE: 0${stateIndex + 1}/06`;
+        }
+
+        function copyPrompt(id) {
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text);
+            alert("Prompt copiado al portapapeles. ¡Pégalo en Google AI Studio!");
+        }
+
+        function copyMasterPrompt() {
+            const megaPrompt = `Actúa como SGX Chief of Staff y Senior WebGL Developer de Spatialgineers. Construye el ecosistema interactivo WebXR en un solo archivo HTML con las siguientes especificaciones extraídas del SGX Synthesize Hub:
+- Marca: ${SGXConfig.brand}
+- Email Contacto: ${SGXConfig.email}
+- SGX.Showcase: Icosaedro 3D, Material Hex: ${SGXConfig.color}, Roughness: ${SGXConfig.roughness}.
+- SGX.Spark: Velocidad de rotación base ${SGXConfig.speed}. Escala inicial ${SGXConfig.scale}. Gamificación: Raycaster onClick para escalar 1.2x temporalmente.
+- SGX.Story: Interfaz UI en Tailwind que indique: "Misión: Alcanzar ${SGXConfig.goal} derrotando a ${SGXConfig.enemy}".
+- SGX.Stage: Aplica un filtro visual CSS global al Canvas que emule el estilo: ${SGXConfig.shaderMode}.
+
+Genera el código completo listo para compilar.`;
+            navigator.clipboard.writeText(megaPrompt);
+            alert("Mega-Prompt copiado. ¡Llévalo a Google AI Studio para crear tu propio ecosistema desde cero!");
+        }
+
+        // --- 6. THE COMPILER (NORMAL APP EXPORT) ---
         function exportPrototype() {
             const scriptTagOpen = "<scr" + "ipt>";
             const scriptTagClose = "</scr" + "ipt>";
 
-            // Caballo de Troya: Genera el archivo standalone
             const exportedHTML = `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -393,22 +442,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
         body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Space Grotesk', sans-serif; color: #fff; }
         #canvas-wrapper { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
-        
         .sgx-glass { background: rgba(15, 20, 30, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(50, 82, 123, 0.4); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5); }
         .sgx-button { background: linear-gradient(135deg, #32527B 0%, #1a2a40 100%); border: 1px solid #FDCC0D; clip-path: polygon(10px 0, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s ease; cursor: pointer; }
-        .sgx-button:hover { background: #FDCC0D; color: #000; }
-        
         .stage-cyberpunk canvas { filter: contrast(1.3) saturate(1.8) hue-rotate(25deg); }
         .stage-fire canvas { filter: sepia(1) hue-rotate(-50deg) saturate(2.5) contrast(1.3); }
         .stage-clean canvas { filter: none; }
-        
         #score-popup { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: bold; color: #FDCC0D; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
     </style>
 </head>
 <body>
     <div id="canvas-wrapper" class="${SGXConfig.shaderMode}"></div>
     <div id="score-popup">+1</div>
-    
     <div class="absolute inset-0 z-10 flex flex-col justify-between p-8 pointer-events-none">
         <header class="w-full flex justify-between items-start">
             <h1 class="text-3xl font-bold tracking-widest text-white uppercase">${SGXConfig.brand} <span class="text-xs text-[#FDCC0D] block mt-1">POWERED BY SPATIALGINEERS</span></h1>
@@ -417,105 +461,47 @@
                 <p class="text-2xl font-bold text-[#FDCC0D]" id="score-display">000</p>
             </div>
         </header>
-
         <main class="w-full max-w-xl mx-auto pointer-events-auto text-center mt-[5vh]">
             <div class="sgx-glass p-8 rounded-xl border-t-4 border-t-[#FDCC0D]">
                 <h2 class="text-2xl font-bold text-white mb-2 uppercase">SGX.STORY INICIALIZADA</h2>
                 <p class="text-gray-300 text-sm mb-4">La misión es alcanzar <b>${SGXConfig.goal}</b> derrotando a <b>${SGXConfig.enemy}</b>.</p>
-                <p class="text-xs text-[#FDCC0D] uppercase tracking-widest bg-black/50 py-2 rounded border border-gray-600 animate-pulse">Haz clic en el núcleo 3D para ganar puntos</p>
             </div>
         </main>
-
-        <footer class="w-full flex justify-center pointer-events-auto mb-4">
-            <a href="https://calendly.com/spatialgineers" target="_blank" class="sgx-button text-white px-10 py-4 font-bold tracking-widest text-lg">
-                AGENDAR DISCOVERY CALL
-            </a>
-        </footer>
     </div>
-
     ${scriptTagOpen}
-        // Compiled SGX Physics & Render Engine
         let scene, camera, renderer, mesh;
         let score = 0;
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
+        const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
         function init() {
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x050505, 0.02);
-            
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.z = 6;
-            
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x050505, 0.02);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 6;
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true }); renderer.setSize(window.innerWidth, window.innerHeight);
             document.getElementById('canvas-wrapper').appendChild(renderer.domElement);
-
-            const geometry = new THREE.IcosahedronGeometry(2, 0);
-            const material = new THREE.MeshStandardMaterial({ 
-                color: '${SGXConfig.color}', 
-                roughness: ${SGXConfig.roughness}, 
-                metalness: 0.8 
-            });
-            mesh = new THREE.Mesh(geometry, material);
+            mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(2, 0), new THREE.MeshStandardMaterial({ color: '${SGXConfig.color}', roughness: ${SGXConfig.roughness}, metalness: 0.8 }));
             mesh.scale.set(${SGXConfig.scale}, ${SGXConfig.scale}, ${SGXConfig.scale});
-            
-            const wireframeGeom = new THREE.IcosahedronGeometry(2.3, 0);
-            const wireframeMat = new THREE.MeshBasicMaterial({ color: 0xFDCC0D, wireframe: true, transparent: true, opacity: 0.3 });
-            mesh.add(new THREE.Mesh(wireframeGeom, wireframeMat));
+            mesh.add(new THREE.Mesh(new THREE.IcosahedronGeometry(2.3, 0), new THREE.MeshBasicMaterial({ color: 0xFDCC0D, wireframe: true, transparent: true, opacity: 0.3 })));
             scene.add(mesh);
-
             scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-            const light1 = new THREE.PointLight(0xffffff, 1.5); light1.position.set(5, 5, 5); scene.add(light1);
-            const light2 = new THREE.PointLight(0xFDCC0D, 3); light2.position.set(-5, -5, -5); scene.add(light2);
-            
-            // Interaction logic (Spark)
-            window.addEventListener('click', (event) => { 
-                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            const l1 = new THREE.PointLight(0xffffff, 1.5); l1.position.set(5, 5, 5); scene.add(l1);
+            const l2 = new THREE.PointLight(0xFDCC0D, 3); l2.position.set(-5, -5, -5); scene.add(l2);
+            window.addEventListener('click', (e) => { 
+                mouse.x = (e.clientX/window.innerWidth)*2-1; mouse.y = -(e.clientY/window.innerHeight)*2+1;
                 raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObject(mesh);
-                
-                if (intersects.length > 0) {
-                    score += 10;
-                    document.getElementById('score-display').innerText = score.toString().padStart(3, '0');
-                    
-                    // Visual feedback
-                    mesh.scale.multiplyScalar(1.2); 
-                    material.emissive.setHex(0x32527B);
-                    material.emissiveIntensity = 0.5;
-                    
-                    const popup = document.getElementById('score-popup');
-                    popup.style.opacity = 1;
-                    
-                    setTimeout(() => { 
-                        mesh.scale.set(${SGXConfig.scale},${SGXConfig.scale},${SGXConfig.scale});
-                        material.emissive.setHex(0x000000);
-                        popup.style.opacity = 0;
-                    }, 150); 
+                if (raycaster.intersectObject(mesh).length > 0) {
+                    score += 10; document.getElementById('score-display').innerText = score.toString().padStart(3, '0');
+                    mesh.scale.multiplyScalar(1.2); mesh.material.emissive.setHex(0x32527B); mesh.material.emissiveIntensity = 0.5;
+                    const p = document.getElementById('score-popup'); p.style.opacity = 1;
+                    setTimeout(() => { mesh.scale.set(${SGXConfig.scale},${SGXConfig.scale},${SGXConfig.scale}); mesh.material.emissive.setHex(0x000000); p.style.opacity = 0; }, 150); 
                 }
             });
-            
-            window.addEventListener('resize', () => { 
-                camera.aspect = window.innerWidth/window.innerHeight; 
-                camera.updateProjectionMatrix(); 
-                renderer.setSize(window.innerWidth, window.innerHeight); 
-            });
-
             animate();
         }
-        function animate() {
-            requestAnimationFrame(animate);
-            mesh.rotation.x += ${SGXConfig.speed};
-            mesh.rotation.y += ${SGXConfig.speed};
-            renderer.render(scene, camera);
-        }
+        function animate() { requestAnimationFrame(animate); mesh.rotation.x += ${SGXConfig.speed}; mesh.rotation.y += ${SGXConfig.speed}; renderer.render(scene, camera); }
         init();
     ${scriptTagClose}
 </body>
 </html>`;
 
-            // Creación del Blob y descarga automática (SaaS Engine)
             const blob = new Blob([exportedHTML], { type: 'text/html' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -526,11 +512,9 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
-            // Reiniciar para el próximo usuario
             alert(`Caballo de Troya compilado para: ${SGXConfig.brand}. Revisa tus descargas.`);
             nextState(0);
         }
-
     </script>
 </body>
 </html>
