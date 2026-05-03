@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SGX | Reality Forge Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Inter:wght@300;500;800&display=swap');
+        
+        :root {
+            --sgx-blue: #32527B;
+            --sgx-yellow: #FDCC0D;
+            --sgx-copper: #B87333;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: #050505;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        h1, h2, h3, .sgx-title {
+            font-family: 'Syncopate', sans-serif;
+        }
+
+        #canvas-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(253, 204, 13, 0.1);
+            border-top: 1px solid rgba(253, 204, 13, 0.3);
+        }
+
+        /* Fluid UI Clamp */
+        .text-fluid-h1 { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+        .text-fluid-p { font-size: clamp(0.85rem, 1.5vw, 1rem); }
+
+        .slider-sgx {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.1);
+            outline: none;
+            border-radius: 2px;
+        }
+        .slider-sgx::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--sgx-yellow);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--sgx-yellow);
+        }
+
+        .step-container {
+            display: none;
+            animation: fadeIn 0.3s ease forwards;
+        }
+        .step-container.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cyber-glitch {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 1px, transparent 1px, transparent 2px);
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+    <div class="cyber-glitch"></div>
+
+    <!-- UI Overlay -->
+    <div class="absolute inset-0 z-10 flex flex-col md:flex-row pointer-events-none p-4 md:p-8 gap-6">
+        
+        <!-- Header / Nav -->
+        <div class="w-full md:w-1/3 flex flex-col gap-4 pointer-events-auto">
+            <div class="glass-panel p-6 rounded-xl">
+                <h1 class="text-fluid-h1 font-bold text-[#FDCC0D] tracking-widest">SGX.SYNTHESIZE</h1>
+                <p class="text-fluid-p text-gray-400 mt-2">The Reality Forge Builder. Configura el ecosistema y empaqueta el prototipo.</p>
+            </div>
+
+            <!-- Steps Controller -->
+            <div class="glass-panel p-4 rounded-xl flex flex-col gap-2">
+                <button onclick="setStep(1)" id="btn-step-1" class="text-left px-4 py-3 rounded hover:bg-[#32527B]/50 transition border-l-2 border-[#FDCC0D] text-[#FDCC0D]">1. SGX.SHOWCASE (Activo)</button>
+                <button onclick="setStep(2)" id="btn-step-2" class="text-left px-4 py-3 rounded hover:bg-[#32527B]/50 transition border-l-2 border-transparent text-gray-400">2. SGX.SPARK (Físicas)</button>
+                <button onclick="setStep(3)" id="btn-step-3" class="text-left px-4 py-3 rounded hover:bg-[#32527B]/50 transition border-l-2 border-transparent text-gray-400">3. SGX.STORY (Narrativa)</button>
+                <button onclick="setStep(4)" id="btn-step-4" class="text-left px-4 py-3 rounded hover:bg-[#32527B]/50 transition border-l-2 border-transparent text-gray-400">4. SGX.STAGE (Atmósfera)</button>
+                <button onclick="setStep(5)" id="btn-step-5" class="text-left px-4 py-3 rounded hover:bg-[#32527B]/50 transition border-l-2 border-transparent text-gray-400">5. SGX.SYSTEM (Compilador)</button>
+            </div>
+        </div>
+
+        <!-- Configuration Panels -->
+        <div class="w-full md:w-1/3 ml-auto pointer-events-auto flex items-center">
+            <div class="glass-panel p-6 rounded-xl w-full">
+                
+                <!-- STEP 1 -->
+                <div id="step-1" class="step-container active">
+                    <h2 class="text-xl sgx-title mb-4">SGX.SHOWCASE</h2>
+                    <p class="text-sm text-gray-400 mb-6">Ajusta los materiales PBR del activo base en tiempo real.</p>
+                    
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider">COLOR DEL ACTIVO</label>
+                            <input type="color" id="cfg-color" value="#32527B" class="w-full h-10 mt-1 cursor-pointer bg-transparent border-0 rounded" oninput="updateConfig('color', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider flex justify-between"><span>METALNESS</span> <span id="val-metal">0.8</span></label>
+                            <input type="range" min="0" max="1" step="0.01" value="0.8" class="slider-sgx mt-2" oninput="updateConfig('metalness', this.value); document.getElementById('val-metal').innerText=this.value;">
+                        </div>
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider flex justify-between"><span>ROUGHNESS</span> <span id="val-rough">0.2</span></label>
+                            <input type="range" min="0" max="1" step="0.01" value="0.2" class="slider-sgx mt-2" oninput="updateConfig('roughness', this.value); document.getElementById('val-rough').innerText=this.value;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2 -->
+                <div id="step-2" class="step-container">
+                    <h2 class="text-xl sgx-title mb-4">SGX.SPARK</h2>
+                    <p class="text-sm text-gray-400 mb-6">Parametriza las mecánicas del mini-juego inyectado.</p>
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider flex justify-between"><span>VELOCIDAD DEL ENTORNO</span> <span id="val-speed">5</span></label>
+                            <input type="range" min="1" max="15" step="0.1" value="5" class="slider-sgx mt-2" oninput="updateConfig('speed', this.value); document.getElementById('val-speed').innerText=this.value;">
+                        </div>
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider flex justify-between"><span>GRAVEDAD SIMULADA</span> <span id="val-grav">9.8</span></label>
+                            <input type="range" min="2" max="20" step="0.1" value="9.8" class="slider-sgx mt-2" oninput="updateConfig('gravity', this.value); document.getElementById('val-grav').innerText=this.value;">
+                        </div>
+                        <p class="text-xs text-[#32527B] mt-2 border-l-2 border-[#32527B] pl-2">Nota: Estos valores controlarán la física en el HTML exportado.</p>
+                    </div>
+                </div>
+
+                <!-- STEP 3 -->
+                <div id="step-3" class="step-container">
+                    <h2 class="text-xl sgx-title mb-4">SGX.STORY</h2>
+                    <p class="text-sm text-gray-400 mb-6">Inyecta el contexto narrativo (Mad-Libs Style).</p>
+                    <div class="flex flex-col gap-4">
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider">TU MARCA/COMPAÑÍA</label>
+                            <input type="text" id="cfg-brand" placeholder="Ej. LIDER Ent." class="w-full bg-black/50 border border-gray-600 rounded p-2 mt-1 text-white text-sm" oninput="updateConfig('brand', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider">EL ENEMIGO (PROBLEMA)</label>
+                            <input type="text" id="cfg-enemy" placeholder="Ej. El Contenido Aburrido" class="w-full bg-black/50 border border-gray-600 rounded p-2 mt-1 text-white text-sm" oninput="updateConfig('enemy', this.value)">
+                        </div>
+                        <div>
+                            <label class="text-xs text-[#FDCC0D] tracking-wider">EL OBJETIVO DEL JUEGO</label>
+                            <input type="text" id="cfg-goal" placeholder="Ej. Capturar Leads" class="w-full bg-black/50 border border-gray-600 rounded p-2 mt-1 text-white text-sm" oninput="updateConfig('goal', this.value)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4 -->
+                <div id="step-4" class="step-container">
+                    <h2 class="text-xl sgx-title mb-4">SGX.STAGE</h2>
+                    <p class="text-sm text-gray-400 mb-6">Selecciona el Ubershader / Atmósfera del ecosistema.</p>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button onclick="setTheme('clean')" id="btn-theme-clean" class="p-3 border border-[#FDCC0D] bg-[#FDCC0D]/20 text-[#FDCC0D] rounded tracking-widest text-sm sgx-title transition">CLEAN STUDIO</button>
+                        <button onclick="setTheme('cyber')" id="btn-theme-cyber" class="p-3 border border-gray-600 text-gray-400 hover:border-[#32527B] hover:text-[#32527B] rounded tracking-widest text-sm sgx-title transition">CYBER GLITCH</button>
+                        <button onclick="setTheme('fire')" id="btn-theme-fire" class="p-3 border border-gray-600 text-gray-400 hover:border-[#B87333] hover:text-[#B87333] rounded tracking-widest text-sm sgx-title transition">NCANDELA FIRE</button>
+                    </div>
+                </div>
+
+                <!-- STEP 5 -->
+                <div id="step-5" class="step-container">
+                    <h2 class="text-xl sgx-title mb-4">SGX.SYSTEM</h2>
+                    <p class="text-sm text-gray-400 mb-6">El motor de compilación. Convierte tus selecciones en un ejecutable HTML independiente.</p>
+                    
+                    <div class="bg-[#32527B]/20 p-4 rounded mb-6 border border-[#32527B]">
+                        <p class="text-xs text-gray-300">Este proceso inyectará el estado actual (JSON) en la plantilla maestra de Spatialgineers, generando un caballo de Troya comercial listo para enviar al cliente.</p>
+                    </div>
+
+                    <button onclick="compileEcosystem()" class="w-full bg-[#FDCC0D] text-black font-bold py-4 rounded-lg tracking-widest hover:bg-white transition sgx-title shadow-[0_0_15px_rgba(253,204,13,0.5)]">EMPAQUETAR ECOSISTEMA</button>
+                </div>
+
+                <!-- Nav Buttons inside panel -->
+                <div class="mt-8 flex justify-between border-t border-white/10 pt-4">
+                    <button onclick="prevStep()" class="text-gray-400 hover:text-white text-sm tracking-wider uppercase">← Anterior</button>
+                    <button onclick="nextStep()" class="text-[#FDCC0D] hover:text-white text-sm tracking-wider uppercase font-bold">Siguiente →</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC SCRIPT -->
+    <script>
+        // --- 1. GLOBAL STATE MACHINE ---
+        const SGX_CONFIG = {
+            color: '#32527B',
+            metalness: 0.8,
+            roughness: 0.2,
+            speed: 5.0,
+            gravity: 9.8,
+            brand: 'Marca Cliente',
+            enemy: 'La Fricción',
+            goal: 'Retención',
+            theme: 'clean'
+        };
+
+        let currentStep = 1;
+        const totalSteps = 5;
+
+        function updateConfig(key, value) {
+            SGX_CONFIG[key] = value;
+            if(key === 'color' || key === 'metalness' || key === 'roughness') {
+                updateMaterial();
+            }
+        }
+
+        function setTheme(theme) {
+            SGX_CONFIG.theme = theme;
+            document.getElementById('btn-theme-clean').className = "p-3 border border-gray-600 text-gray-400 hover:border-[#32527B] hover:text-[#32527B] rounded tracking-widest text-sm sgx-title transition";
+            document.getElementById('btn-theme-cyber').className = "p-3 border border-gray-600 text-gray-400 hover:border-[#32527B] hover:text-[#32527B] rounded tracking-widest text-sm sgx-title transition";
+            document.getElementById('btn-theme-fire').className = "p-3 border border-gray-600 text-gray-400 hover:border-[#B87333] hover:text-[#B87333] rounded tracking-widest text-sm sgx-title transition";
+            
+            let btnId = 'btn-theme-' + theme;
+            let activeClass = "p-3 border border-[#FDCC0D] bg-[#FDCC0D]/20 text-[#FDCC0D] rounded tracking-widest text-sm sgx-title transition";
+            if(theme === 'fire') activeClass = "p-3 border border-[#B87333] bg-[#B87333]/20 text-[#B87333] rounded tracking-widest text-sm sgx-title transition";
+            
+            document.getElementById(btnId).className = activeClass;
+
+            // Live preview update
+            if(theme === 'clean') scene.background = new THREE.Color(0x050505);
+            if(theme === 'cyber') scene.background = new THREE.Color(0x001100);
+            if(theme === 'fire') scene.background = new THREE.Color(0x220000);
+        }
+
+        function setStep(step) {
+            document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+            document.getElementById('step-' + step).classList.add('active');
+            
+            // Update sidebar UI
+            for(let i=1; i<=totalSteps; i++) {
+                let btn = document.getElementById('btn-step-' + i);
+                if(i === step) {
+                    btn.classList.replace('border-transparent', 'border-[#FDCC0D]');
+                    btn.classList.replace('text-gray-400', 'text-[#FDCC0D]');
+                } else {
+                    btn.classList.replace('border-[#FDCC0D]', 'border-transparent');
+                    btn.classList.replace('text-[#FDCC0D]', 'text-gray-400');
+                }
+            }
+            currentStep = step;
+        }
+
+        function nextStep() { if(currentStep < totalSteps) setStep(currentStep + 1); }
+        function prevStep() { if(currentStep > 1) setStep(currentStep - 1); }
+
+        // --- 2. THREE.JS LIVE PREVIEW (SHOWCASE) ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050505);
+        // FOG para dar profundidad
+        scene.fog = new THREE.FogExp2(0x050505, 0.05);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimizado
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Geometría técnica (TorusKnot = Ingeniería + Creatividad)
+        const geometry = new THREE.TorusKnotGeometry(1, 0.3, 200, 32);
+        let material = new THREE.MeshStandardMaterial({
+            color: SGX_CONFIG.color,
+            metalness: SGX_CONFIG.metalness,
+            roughness: SGX_CONFIG.roughness,
+            wireframe: false
+        });
+        const sgxAsset = new THREE.Mesh(geometry, material);
+        scene.add(sgxAsset);
+
+        // Iluminación de Estudio (Clean)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const pointLight1 = new THREE.PointLight(0xFDCC0D, 1, 10);
+        pointLight1.position.set(2, 2, 2);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0x32527B, 2, 10);
+        pointLight2.position.set(-2, -2, 2);
+        scene.add(pointLight2);
+
+        function updateMaterial() {
+            material.color.set(SGX_CONFIG.color);
+            material.metalness = parseFloat(SGX_CONFIG.metalness);
+            material.roughness = parseFloat(SGX_CONFIG.roughness);
+        }
+
+        // Mouse Parallax interactivo
+        let mouseX = 0; let mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const time = clock.getElapsedTime();
+
+            sgxAsset.rotation.x += 0.005;
+            sgxAsset.rotation.y += 0.01;
+
+            // Suave parallax
+            camera.position.x += (mouseX * 0.5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 0.5 - camera.position.y) * 0.05;
+            camera.lookAt(scene.position);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 3. THE SGX COMPILER (THE TROJAN HORSE) ---
+        function compileEcosystem() {
+            // Validación básica
+            if(SGX_CONFIG.brand === 'Marca Cliente') {
+                SGX_CONFIG.brand = document.getElementById('cfg-brand').value || 'Socio Estratégico';
+            }
+
+            // String stringify config
+            const configJSON = JSON.stringify(SGX_CONFIG);
+
+            // PLANTILLA MAESTRA DEL HTML A EXPORTAR
+            // Ojo: Escapamos los tags de script cerrados como <\x2Fscript>
+            const exportHTML = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>\${SGX_CONFIG.brand} | SGX Prototype</title>
+    <script src="https://cdn.tailwindcss.com"><\x2Fscript>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\x2Fscript>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Inter:wght@400;800&display=swap');
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Inter', sans-serif; color: white; }
+        #canvas-container { position: absolute; z-index: 1; width: 100vw; height: 100vh; }
+        .ui-layer { position: absolute; z-index: 10; width: 100%; height: 100%; pointer-events: none; display: flex; flex-col; justify-content: space-between; padding: 2rem; box-sizing: border-box;}
+        .glass { background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; pointer-events: auto; }
+        .sgx-font { font-family: 'Syncopate', sans-serif; }
+        .cta-btn { background: #FDCC0D; color: black; padding: 1rem 2rem; border-radius: 8px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s;}
+        .cta-btn:hover { background: white; box-shadow: 0 0 20px #FDCC0D; transform: scale(1.05);}
+        #game-ui { display: none; position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); text-align: center; }
+        
+        /* Thematic Addons */
+        \${SGX_CONFIG.theme === 'cyber' ? '.ui-layer::before { content:""; position:absolute; top:0;left:0;width:100%;height:100%; background:repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.1) 2px, rgba(0,255,0,0.1) 4px); pointer-events:none; z-index: -1; }' : ''}
+        \${SGX_CONFIG.theme === 'fire' ? 'body { animation: fireGlow 2s infinite alternate; } @keyframes fireGlow { from { box-shadow: inset 0 0 50px #ff0000; } to { box-shadow: inset 0 0 100px #ff5500; } }' : ''}
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div class="ui-layer flex flex-col justify-between">
+        <div class="flex justify-between items-start">
+            <div class="glass max-w-md">
+                <h1 class="sgx-font text-2xl text-[#FDCC0D] mb-2">\${SGX_CONFIG.brand} HUB</h1>
+                <p class="text-sm text-gray-300">Bienvenido al ecosistema inmersivo. El mundo ha sido dominado por <strong>\${SGX_CONFIG.enemy}</strong>. Nuestra misión es recolectar la mayor cantidad de <strong>\${SGX_CONFIG.goal}</strong> posible.</p>
+            </div>
+            <div class="glass text-right">
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Powered by</p>
+                <h2 class="sgx-font text-lg text-white">SPATIALGINEERS</h2>
+            </div>
+        </div>
+
+        <div id="game-ui" class="glass">
+            <h2 class="sgx-font text-3xl mb-4" id="score-disp">PUNTOS: 0</h2>
+            <p class="mb-4">Haz click en la gema holográfica antes de que se escape!</p>
+            <button class="cta-btn" onclick="startGame()">INICIALIZAR SPARK</button>
+        </div>
+
+        <div class="text-center w-full flex justify-center pb-4">
+            <a href="https://calendly.com/danelson" target="_blank" class="cta-btn sgx-font text-sm uppercase">AGENDAR DISCOVERY CALL CON SGX</a>
+        </div>
+    </div>
+
+    <script>
+        // INJECTED STATE FROM BUILDER
+        const STATE = \${configJSON};
+        
+        // THREE JS ENGINE
+        const scene = new THREE.Scene();
+        if(STATE.theme === 'clean') scene.background = new THREE.Color(0x050505);
+        if(STATE.theme === 'cyber') scene.background = new THREE.Color(0x001100);
+        if(STATE.theme === 'fire') scene.background = new THREE.Color(0x220000);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // Lights
+        const light = new THREE.PointLight(0xffffff, 1, 100);
+        light.position.set(0, 5, 5);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+        // The Asset
+        const geometry = new THREE.IcosahedronGeometry(1, 1);
+        const material = new THREE.MeshStandardMaterial({
+            color: STATE.color,
+            metalness: STATE.metalness,
+            roughness: STATE.roughness,
+            wireframe: STATE.theme === 'cyber'
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+
+        // Animation Loop
+        let isPlaying = false;
+        let score = 0;
+        let velocityY = 0;
+        let gravity = parseFloat(STATE.gravity) * 0.001;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            mesh.rotation.x += 0.01;
+            mesh.rotation.y += 0.01;
+
+            if(isPlaying) {
+                // FAKE PHYSICS (SGX.SPARK)
+                mesh.position.y += velocityY;
+                velocityY -= gravity;
+                
+                // Bounce
+                if(mesh.position.y < -3) {
+                    velocityY = parseFloat(STATE.speed) * 0.05;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // UI Interactions
+        setTimeout(() => { document.getElementById('game-ui').style.display = 'block'; }, 2000);
+
+        function startGame() {
+            document.getElementById('game-ui').style.display = 'none';
+            isPlaying = true;
+            velocityY = parseFloat(STATE.speed) * 0.05;
+        }
+
+        // Raycaster for Game
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        window.addEventListener('click', (event) => {
+            if(!isPlaying) return;
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(mesh);
+            if(intersects.length > 0) {
+                score += 100;
+                // Pop effect
+                mesh.scale.set(1.5, 1.5, 1.5);
+                setTimeout(()=> mesh.scale.set(1,1,1), 100);
+                // Relocate
+                mesh.position.x = (Math.random() - 0.5) * 4;
+                velocityY = parseFloat(STATE.speed) * 0.05; // Kick back up
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth/window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    <\x2Fscript>
+</body>
+</html>`;
+
+            // CREACIÓN DEL BLOB (Forzar Descarga)
+            const blob = new Blob([exportHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `SGX_Prototipo_${SGX_CONFIG.brand.replace(/\s+/g, '_')}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Hook de dopamina: Cambio visual en el botón
+            const btn = document.querySelector('button[onclick="compileEcosystem()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "¡SISTEMA EMPAQUETADO Y DESCARGADO!";
+            btn.classList.add('bg-green-500');
+            btn.classList.remove('bg-[#FDCC0D]');
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('bg-green-500');
+                btn.classList.add('bg-[#FDCC0D]');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
