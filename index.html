@@ -26,7 +26,7 @@
         .sgx-border-gold { border-left: 3px solid #FDCC0D; }
         .sgx-border-red { border-left: 3px solid #FF0055; }
         
-        /* Botones Tácticos SGX */
+        /* Botones Tácticos */
         .sgx-btn {
             background: linear-gradient(90deg, rgba(26, 26, 26, 0.9), rgba(50, 82, 123, 0.4));
             border: 1px solid rgba(0, 255, 255, 0.3);
@@ -53,27 +53,22 @@
         .rec-blink { animation: blinker 1s linear infinite; color: #FF0055; text-shadow: 0 0 10px #FF0055;}
         @keyframes blinker { 50% { opacity: 0.2; } }
 
-        /* Controles Deslizantes y de Color */
+        /* Controles y Sliders */
         input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 8px 0; }
         input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; }
         input[type=range]::-webkit-slider-thumb { height: 14px; width: 10px; background: #00FFFF; cursor: pointer; -webkit-appearance: none; margin-top: -5px; border-radius: 2px; box-shadow: 0 0 10px rgba(0,255,255,0.6); }
-        
         input[type=color] { -webkit-appearance: none; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; padding: 0; background: none; border: 1px solid rgba(255,255,255,0.2); }
         input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
         input[type=color]::-webkit-color-swatch { border: 1px solid #ffffff; border-radius: 3px; }
 
-        /* Toggles */
         .toggle-checkbox:checked + .toggle-label { background-color: #00FFFF; }
         .toggle-checkbox:checked + .toggle-label:after { transform: translateX(100%); border-color: white; }
-        .toggle-gold:checked + .toggle-label { background-color: #FDCC0D; }
 
-        /* Pantalla de Carga y Drop Zone */
+        /* Drop Zone & Loader */
         #drop-zone { transition: all 0.3s ease; }
         #drop-zone.dragover { background: rgba(0, 255, 255, 0.1); border: 2px dashed #00FFFF; transform: scale(1.02); }
-        
         .loader { border: 3px solid rgba(0,255,255,0.1); border-top: 3px solid #00FFFF; border-radius: 50%; width: 60px; height: 60px; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
@@ -86,7 +81,7 @@
         <i class="fa-solid fa-eye-slash" id="icon-cine"></i>
     </button>
 
-    <!-- Zona de Ingesta Principal (Totalmente Desbloqueada) -->
+    <!-- Zona de Ingesta Principal -->
     <div id="drop-zone" class="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-auto bg-[#030303] bg-opacity-95 backdrop-blur-md transition-all duration-500">
         <div class="sgx-panel sgx-border-l p-8 md:p-14 text-center max-w-2xl mx-4">
             <div class="relative inline-block mb-6 flex items-center justify-center gap-4">
@@ -94,23 +89,23 @@
                 <i class="fa-solid fa-gear text-6xl text-[#FDCC0D] animate-[spin_4s_linear_infinite] drop-shadow-[0_0_15px_rgba(253,204,13,0.5)]"></i>
             </div>
             <h1 class="text-4xl md:text-5xl font-black text-white mb-2 tracking-widest">SGX 3D <span class="text-[#00FFFF]">FORGE</span></h1>
-            <p class="text-[#FDCC0D] text-xs md:text-sm mb-6 uppercase tracking-widest font-bold">The Ultimate VisDev Studio</p>
+            <p class="text-[#FDCC0D] text-xs md:text-sm mb-6 uppercase tracking-widest font-bold">The Apex Edition</p>
             <p class="text-gray-400 text-xs mb-8 max-w-md mx-auto leading-relaxed">
-                Naked Mesh Protocol Activo. Ingresa tu modelo 3D. El motor eliminará automáticamente sus texturas, manteniendo sus UVs intactos para otorgarte control físico y estético absoluto.
+                Naked Mesh Protocol. Sube tu GLB, STL, OBJ o FBX. El motor destruirá los materiales viejos, recalculará el rebote de luz y preparará la malla para inyección PBR y texturizado táctico absoluto.
             </p>
 
             <div class="flex flex-wrap justify-center gap-2 mb-8 text-[10px] font-bold text-[#00FFFF]">
-                <span class="px-3 py-1.5 border border-[#00FFFF]/30 bg-black/60 rounded">UNIVERSAL UPLOAD (GLB / STL / OBJ / FBX / PLY)</span>
+                <span class="px-3 py-1.5 border border-[#00FFFF]/30 bg-black/60 rounded">FORMATOS LIBRES (GLB, STL, OBJ, PLY, FBX)</span>
             </div>
 
             <label for="file-upload" class="sgx-btn px-8 py-5 text-white inline-block w-full text-base font-bold shadow-lg shadow-[#00FFFF]/20">
-                <i class="fa-solid fa-bolt mr-2"></i> INYECTAR GEOMETRÍA AL NÚCLEO
+                <i class="fa-solid fa-upload mr-2"></i> INYECTAR GEOMETRÍA AL NÚCLEO
             </label>
             <input id="file-upload" type="file" class="hidden">
         </div>
     </div>
 
-    <!-- Pantalla de Procesamiento -->
+    <!-- Pantalla de Procesamiento Seguro -->
     <div id="loading-screen" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#030303] bg-opacity-95 backdrop-blur-lg">
         <div class="loader mb-6"></div>
         <p class="text-[#00FFFF] font-black text-base tracking-widest animate-pulse" id="loading-text">FORJANDO MATRIZ 3D...</p>
@@ -133,8 +128,7 @@
                     <!-- DRAG AND DROP TEXTURAS -->
                     <div class="mt-4 border border-dashed border-[#FDCC0D]/60 bg-black/50 p-4 rounded text-center cursor-pointer hover:bg-[#FDCC0D]/20 transition-all relative group">
                         <i class="fa-solid fa-image text-[#FDCC0D] text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
-                        <p class="text-[9px] text-white font-bold leading-tight">INYECCIÓN DE TEXTURA<br><span class="text-gray-400 font-normal">(Sube tu JPG/PNG)</span></p>
-                        <!-- Restringimos a imágenes porque es solo para inyectar texturas -->
+                        <p class="text-[9px] text-white font-bold leading-tight">TEXTURA CUSTOM<br><span class="text-gray-400 font-normal">(Sube tu JPG/PNG)</span></p>
                         <input id="tex-upload" type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
                     </div>
                 </div>
@@ -142,14 +136,13 @@
                 <!-- MÓDULO STUDIO EXPORT -->
                 <div class="sgx-panel sgx-border-red p-5 pointer-events-auto mt-2">
                     <h2 class="text-xs font-black text-[#FF0055] border-b border-gray-700 pb-2"><i class="fa-solid fa-clapperboard mr-2"></i>STUDIO EXPORT</h2>
-                    
                     <button id="btn-snapshot" class="sgx-btn w-full py-3 text-white mt-4 flex justify-center items-center gap-2 hover:border-[#00FFFF]">
-                        <i class="fa-solid fa-camera"></i> CAPTURAR FOTO
+                        <i class="fa-solid fa-camera"></i> CAPTURAR PNG
                     </button>
-
                     <button id="btn-record" class="sgx-btn sgx-btn-red w-full py-3 text-white mt-2 flex justify-center items-center gap-2">
                         <i id="rec-icon" class="fa-solid fa-circle text-[10px]"></i> <span id="rec-text" class="font-bold">GRABAR MP4</span>
                     </button>
+                    <p class="text-[8px] text-gray-500 text-center mt-2">MP4 (H.264) | 10 Mbps Ultra</p>
                 </div>
 
                 <button id="btn-reset" class="sgx-btn w-full py-3 text-gray-400 pointer-events-auto mt-auto hover:text-white"><i class="fa-solid fa-eject mr-2"></i> PURGAR SESIÓN</button>
@@ -159,13 +152,11 @@
             <div class="sgx-panel sgx-border-gold p-5 w-full md:w-[320px] pointer-events-auto flex flex-col gap-3 max-h-[80vh] overflow-y-auto no-scrollbar">
                 <h2 class="text-sm font-black text-[#FDCC0D] border-b border-gray-700 pb-2"><i class="fa-solid fa-fire-burner mr-2"></i>THE FORGE (PBR)</h2>
                 
-                <!-- SHADER PRESETS -->
                 <div class="grid grid-cols-2 gap-2 mt-2">
-                    <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset" data-mat="original">ORIGINAL</button>
                     <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset active" data-mat="mate">MATE PBR</button>
                     <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset" data-mat="gold">ORO SGX</button>
                     <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset" data-mat="glass">CRISTAL OSCURO</button>
-                    <button class="sgx-btn sgx-btn-gold text-[#00FFFF] py-2.5 mat-preset col-span-2" data-mat="holo">HYPER-HOLO</button>
+                    <button class="sgx-btn sgx-btn-gold text-[#00FFFF] py-2.5 mat-preset" data-mat="holo">HYPER-HOLO</button>
                 </div>
 
                 <div class="bg-black/60 p-4 rounded mt-3 border border-gray-800">
@@ -192,8 +183,8 @@
                     </div>
                     <input type="range" id="sl-metal" min="0" max="1" step="0.01" value="0.2">
 
-                    <!-- Clearcoat permanentemente visible para el Physical Material -->
-                    <div id="clearcoat-container" class="mt-4">
+                    <!-- Clearcoat (Siempre Visible y Funcional en Physical Material) -->
+                    <div class="mt-4">
                         <div class="flex justify-between text-[10px] text-[#00FFFF] font-bold mb-2">
                             <span>CLEARCOAT (BARNIZ)</span><span id="val-clear" class="text-white">0.00</span>
                         </div>
@@ -220,15 +211,7 @@
         <div class="w-full flex justify-center pb-2 mt-auto">
             <div class="sgx-panel p-4 px-8 pointer-events-auto flex flex-wrap justify-center items-center gap-6 bg-black/95 rounded-full border-b-0 border-t-2 border-[#00FFFF]/50 shadow-[0_0_20px_rgba(0,255,255,0.15)]">
                 
-                <!-- Background Color Control -->
-                <div class="flex items-center gap-2" title="Color de Fondo (Contraste)">
-                    <i class="fa-solid fa-fill-drip text-[#00FFFF] text-xs"></i>
-                    <input type="color" id="col-bg" value="#0a0a0a">
-                </div>
-
-                <div class="w-px h-6 bg-gray-700 hidden md:block"></div>
-
-                <!-- Environment Light Intensity -->
+                <!-- Intensidad Luz de Estudio -->
                 <div class="flex items-center gap-3">
                     <i class="fa-solid fa-sun text-[#FDCC0D] text-sm" title="Luz de Estudio"></i>
                     <div class="w-20 md:w-28">
@@ -236,6 +219,14 @@
                     </div>
                 </div>
                 
+                <div class="w-px h-6 bg-gray-700 hidden md:block"></div>
+
+                <!-- Color de Fondo (NUEVO) -->
+                <div class="flex items-center gap-2" title="Color de Fondo (Background)">
+                    <i class="fa-solid fa-fill-drip text-[#00FFFF] text-xs"></i>
+                    <input type="color" id="col-bg" value="#030303">
+                </div>
+
                 <div class="w-px h-6 bg-gray-700 hidden md:block"></div>
                 
                 <div class="flex items-center gap-2 text-[10px] font-black text-gray-300 uppercase tracking-widest cursor-pointer">
@@ -286,12 +277,13 @@
         import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
         import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
-        // --- ARQUITECTURA CORE ---
+        // --- ARQUITECTURA CORE ESTABILIZADA ---
         let scene, camera, renderer, controls, envTexture, mainLight;
         let currentModel = new THREE.Group();
-        let allMeshes = [];
-        let originalMaterialsMap = new Map(); // Para retener el IP original
-        let globalPBRMaterial = null; 
+        
+        // El Fix de Texturas: Almacenamos el material de CADA malla individualmente para no cruzar UVs
+        let activeMaterials = []; 
+        
         let customUserTexture = null; 
         let currentExtension = ''; 
         let currentPreset = 'mate'; 
@@ -304,7 +296,6 @@
         let recordedChunks = [];
         let isRecording = false;
 
-        // Nodos del DOM
         const dropZone = document.getElementById('drop-zone');
         const loadingScreen = document.getElementById('loading-screen');
         const errorText = document.getElementById('error-text');
@@ -317,7 +308,7 @@
 
         function initEngine() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0a0a); 
+            scene.background = new THREE.Color(0x030303); 
             scene.add(currentModel);
 
             camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 5000);
@@ -330,13 +321,13 @@
             renderer.toneMappingExposure = 1.2;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            // ESTUDIO HDRI (Fundamental para reflejos físicos)
+            // EL SECRETO DEL HDRI: Entorno de Luz Dinámico y Global
             const pmremGenerator = new THREE.PMREMGenerator(renderer);
             pmremGenerator.compileEquirectangularShader();
             envTexture = pmremGenerator.fromScene(new RoomEnvironment()).texture;
             scene.environment = envTexture; 
 
-            // Luces de 3 Puntos 
+            // Luces Clásicas
             mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
             mainLight.position.set(5, 10, 7);
             scene.add(mainLight);
@@ -363,23 +354,12 @@
             controls.autoRotate = true;
             controls.autoRotateSpeed = 1.0;
 
-            // SETUP MATERIAL BASE UNIFICADO (Evita crashear la GPU recreando materiales)
-            globalPBRMaterial = new THREE.MeshPhysicalMaterial({ 
-                color: 0x888888, 
-                roughness: 0.3, 
-                metalness: 0.2, 
-                clearcoat: 0.0,
-                envMap: envTexture, 
-                envMapIntensity: 2.0, 
-                side: THREE.DoubleSide
-            });
-
             window.addEventListener('resize', onWindowResize);
             setupInteraction();
             animate();
         }
 
-        // --- RUTEO DE EVENTOS ---
+        // --- SISTEMA DE EVENTOS ---
         function setupInteraction() {
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => document.body.addEventListener(evt, e => e.preventDefault()));
             document.body.addEventListener('dragover', () => dropZone.classList.add('dragover'));
@@ -390,18 +370,18 @@
             document.getElementById('tex-upload').addEventListener('change', e => handleFile(e.target.files[0]));
             document.getElementById('btn-reset').addEventListener('click', () => purgarMemoria(true));
 
-            // Export Actions
             document.getElementById('btn-snapshot').addEventListener('click', exportPNG);
             document.getElementById('btn-record').addEventListener('click', toggleRecording);
 
-            // Binds Continuos para PBR y Lights
+            // Binds Múltiples PBR
             const inputs = ['col-base', 'sl-rough', 'sl-metal', 'sl-clear', 'col-emissive', 'sl-emissive', 'sl-tile'];
             inputs.forEach(id => document.getElementById(id).addEventListener('input', () => forcePBRUpdate()));
 
+            // Background & Light Control
             document.getElementById('sl-light').addEventListener('input', e => mainLight.intensity = parseFloat(e.target.value));
             document.getElementById('col-bg').addEventListener('input', e => scene.background.set(e.target.value));
 
-            // Físicas Toggles
+            // Físicas 
             document.getElementById('tg-rotate').addEventListener('change', e => {
                 flags.rotate = e.target.checked;
                 controls.autoRotate = flags.rotate;
@@ -412,7 +392,7 @@
             });
             document.getElementById('tg-wire').addEventListener('change', e => forcePBRUpdate());
 
-            // Cinematic Mode
+            // Cinematic
             btnCinematic.addEventListener('click', () => {
                 flags.ui = !flags.ui;
                 hud.classList.toggle('hidden', !flags.ui);
@@ -421,7 +401,7 @@
                 btnCinematic.classList.toggle('text-[#00FFFF]', flags.ui);
             });
 
-            // Presets Tácticos
+            // Presets
             document.querySelectorAll('.mat-preset').forEach(btn => {
                 btn.addEventListener('click', e => {
                     document.querySelectorAll('.mat-preset').forEach(b => b.classList.remove('active'));
@@ -441,8 +421,9 @@
                 currentModel = new THREE.Group();
                 scene.add(currentModel);
             }
-            allMeshes = [];
-            originalMaterialsMap.clear();
+            // Destruir Instancias de PBR Activas
+            activeMaterials.forEach(m => m.dispose());
+            activeMaterials = [];
             
             if (fullReset) {
                 document.getElementById('file-upload').value = "";
@@ -458,13 +439,10 @@
                 errorText.classList.add('hidden');
                 dropZone.classList.remove('hidden');
                 if(isRecording) toggleRecording(); 
-                
-                // Reiniciar el material base para evitar contaminación
-                applyPreset('mate');
             }
         }
 
-        // --- INGESTA UNIVERSAL (LIBRE DE CÁLCULOS PESADOS) ---
+        // --- INGESTA UNIVERSAL (0 FRICCIÓN) ---
         function handleFile(file) {
             if (!file) return;
             const filename = file.name.toLowerCase();
@@ -488,6 +466,7 @@
             loadText.innerText = "FORJANDO MATRIZ 3D...";
 
             const reader = new FileReader();
+            
             reader.onload = (e) => {
                 try {
                     parseGeometry(e.target.result, ext);
@@ -495,6 +474,7 @@
                     showErrorLog(err);
                 }
             };
+            
             reader.onerror = () => showErrorLog("File Reader Error");
 
             if (ext === 'obj') reader.readAsText(file);
@@ -504,7 +484,7 @@
         function showErrorLog(err) {
             console.error("SGX MATRIX ERROR:", err);
             errorText.classList.remove('hidden');
-            loadText.innerText = "SISTEMA COMPROMETIDO";
+            loadText.innerText = "FALLO GEOMÉTRICO (ARCHIVO CORRUPTO)";
             setTimeout(() => purgarMemoria(true), 3500);
         }
 
@@ -523,7 +503,7 @@
             geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
         }
 
-        // --- NAKED MESH PROTOCOL ---
+        // --- THE NAKED MESH PROTOCOL (FIXED HDRI & UV) ---
         function parseGeometry(data, ext) {
             let object = new THREE.Group();
 
@@ -534,12 +514,10 @@
             else if (ext === 'obj') object = new OBJLoader().parse(data);
             else if (ext === 'stl') {
                 const geo = new STLLoader().parse(data);
-                geo.computeVertexNormals(); 
                 object.add(new THREE.Mesh(geo));
             } 
             else if (ext === 'ply') {
                 const geo = new PLYLoader().parse(data);
-                geo.computeVertexNormals(); 
                 object.add(new THREE.Mesh(geo));
             }
             else if (ext === 'fbx') {
@@ -552,14 +530,14 @@
         }
 
         function loadCustomTexture(file) {
-            if (allMeshes.length === 0) return alert("Sube un modelo 3D primero.");
+            if (activeMaterials.length === 0) return alert("Sube un modelo 3D primero.");
             const url = URL.createObjectURL(file);
             new THREE.TextureLoader().load(url, (tex) => {
                 tex.colorSpace = THREE.SRGBColorSpace;
                 tex.wrapS = THREE.RepeatWrapping;
                 tex.wrapT = THREE.RepeatWrapping;
                 
-                // Hack para Orientación Correcta en GLB
+                // FLIP Y HACK: Solo invertimos texturas si NO son de un GLB
                 if (currentExtension === 'glb' || currentExtension === 'gltf') {
                     tex.flipY = false;
                 } else {
@@ -570,36 +548,38 @@
                 customUserTexture = tex;
                 
                 texControls.classList.remove('hidden');
-                document.querySelectorAll('.mat-preset').forEach(b => b.classList.remove('active'));
                 
-                // Forzamos el preset "Mate PBR" para poder ver la textura limpia sin reflejos del original
-                const customBtn = document.querySelector('[data-mat="mate"]');
-                if(customBtn) customBtn.classList.add('active'); 
+                // Si la persona sube textura, forzamos color base blanco para que no se vea oscura.
+                document.getElementById('col-base').value = "#FFFFFF"; 
                 
-                applyPreset('mate');
+                applyPreset('mate'); // Llama el PBR update y le pega la textura
             }, undefined, (err) => alert("Error cargando textura."));
         }
 
         function assembleModel(newMesh) {
-            if (!newMesh || (!newMesh.isMesh && newMesh.children.length === 0)) return showErrorLog("Geometría nula.");
+            if (!newMesh || (!newMesh.isMesh && newMesh.children.length === 0)) return showErrorLog("Geometría nula generada.");
             let tVerts = 0, tFaces = 0;
 
             newMesh.traverse((child) => {
                 if (child.isMesh) {
-                    allMeshes.push(child);
-                    
-                    // Asegurar UVs para modelos planos
+                    // EL HACK DEL HDRI: Recalcular las normales obliga a que la luz rebote perfecto y no se vea el metal negro.
+                    child.geometry.computeVertexNormals();
                     generateFastUVs(child.geometry);
 
-                    // SALVAR IP ORIGINAL PARA EL PRESET "ORIGINAL"
+                    // Eliminamos el material original defectuoso
                     if (child.material) {
-                        originalMaterialsMap.set(child, child.material); 
-                    } else {
-                        originalMaterialsMap.set(child, new THREE.MeshStandardMaterial({color: 0x888888}));
+                        if(Array.isArray(child.material)) child.material.forEach(m => m.dispose());
+                        else child.material.dispose();
                     }
 
-                    // APLICAMOS NUESTRO MATERIAL PBR DESNUDO A TODAS LAS MALLAS DEL GLB
-                    child.material = globalPBRMaterial;
+                    // APLICAMOS EL MATERIAL REY INDIVIDUALMENTE (Evita UV Crashes en GLB)
+                    const newMat = new THREE.MeshPhysicalMaterial({ 
+                        color: 0x888888, roughness: 0.5, metalness: 0.0, clearcoat: 0.0, 
+                        envMap: envTexture, envMapIntensity: 2.0, side: THREE.DoubleSide
+                    });
+                    
+                    activeMaterials.push(newMat);
+                    child.material = newMat;
 
                     if(child.geometry.index) tFaces += child.geometry.index.count / 3;
                     else if (child.geometry.attributes.position) tFaces += child.geometry.attributes.position.count / 3;
@@ -607,12 +587,12 @@
                 }
             });
 
-            if (allMeshes.length === 0) return showErrorLog("El archivo no contenía mallas 3D válidas.");
+            if (activeMaterials.length === 0) return showErrorLog("El archivo no contenía mallas 3D válidas.");
 
             document.getElementById('stat-verts').innerText = tVerts.toLocaleString();
             currentModel.add(newMesh);
 
-            // AUTO-ENCUADRE
+            // Auto-Encuadre
             const box = new THREE.Box3().setFromObject(currentModel);
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
@@ -631,50 +611,38 @@
             hud.classList.remove('hidden');
             btnCinematic.classList.remove('hidden');
             
-            // Inicia mostrando su textura Original
-            document.querySelectorAll('.mat-preset').forEach(b => b.classList.remove('active'));
-            document.querySelector('[data-mat="mate"]').classList.add('active');
             applyPreset('mate'); 
         }
 
-        // --- SISTEMA DE WIPES Y PRESETS PBR (ESTABILIZADO) ---
+        // --- SISTEMA DE PRESETS PURIFICADO ---
         function applyPreset(type) {
             currentPreset = type;
-            if(!globalPBRMaterial || allMeshes.length === 0) return;
 
-            // Restablecer Material a las mallas (Control de Modo Original vs PBR)
-            if (type === 'original') {
-                allMeshes.forEach(m => {
-                    if(originalMaterialsMap.has(m)) m.material = originalMaterialsMap.get(m);
-                });
-                return; // En el modo original no tocamos sliders
-            } else {
-                // Volvemos a enganchar todas las mallas al material Global PBR
-                allMeshes.forEach(m => m.material = globalPBRMaterial);
-            }
-
-            // WIPE ESTRICTO DEL SHADER GLOBAL
-            globalPBRMaterial.map = null;
-            globalPBRMaterial.bumpMap = null;
-            globalPBRMaterial.transparent = false;
-            globalPBRMaterial.wireframe = false;
-            globalPBRMaterial.emissive.setHex(0x000000);
-            globalPBRMaterial.emissiveIntensity = 0;
-            globalPBRMaterial.envMapIntensity = 2.0; 
-            globalPBRMaterial.opacity = 1;
-            globalPBRMaterial.blending = THREE.NormalBlending;
-            globalPBRMaterial.transmission = 0;
-            globalPBRMaterial.clearcoat = 0;
-            globalPBRMaterial.ior = 1.5;
-
-            // Reset UI
+            // WIPE ESTRICTO DEL DOM (Evita contaminación cruzada entre Oro, Vidrio y Holo)
             document.getElementById('col-emissive').value = "#000000";
             document.getElementById('sl-emissive').value = "0";
             document.getElementById('tg-wire').checked = false;
 
+            // WIPE ESTRUCTURAL A TODOS LOS MATERIALES ACTIVOS EN GPU
+            activeMaterials.forEach(mat => {
+                mat.transparent = false;
+                mat.wireframe = false;
+                mat.emissive.setHex(0x000000);
+                mat.emissiveIntensity = 0;
+                mat.envMapIntensity = 2.0; 
+                mat.opacity = 1;
+                mat.blending = THREE.NormalBlending;
+                mat.transmission = 0;
+                mat.ior = 1.5;
+                mat.thickness = 0;
+            });
+
             switch(type) {
                 case 'mate':
-                    document.getElementById('col-base').value = customUserTexture ? "#FFFFFF" : "#888888";
+                    // Respetamos el color si el usuario subió una textura y lo cambió a blanco
+                    if(!customUserTexture || document.getElementById('col-base').value === "#000000" || document.getElementById('col-base').value === "#050505" || document.getElementById('col-base').value === "#fdcc0d") {
+                        document.getElementById('col-base').value = "#888888";
+                    }
                     document.getElementById('sl-rough').value = 0.5;
                     document.getElementById('sl-metal').value = 0.0;
                     document.getElementById('sl-clear').value = 0.0;
@@ -685,10 +653,13 @@
                     document.getElementById('sl-rough').value = 0.0;
                     document.getElementById('sl-metal').value = 0.9;
                     document.getElementById('sl-clear').value = 1.0;
-                    globalPBRMaterial.transmission = 0.98;
-                    globalPBRMaterial.ior = 2.4;
-                    globalPBRMaterial.thickness = 2.0;
-                    globalPBRMaterial.envMapIntensity = 4.0;
+                    
+                    activeMaterials.forEach(mat => {
+                        mat.transmission = 0.98;
+                        mat.ior = 2.4;
+                        mat.thickness = 2.0;
+                        mat.envMapIntensity = 4.0;
+                    });
                     break;
 
                 case 'gold':
@@ -703,18 +674,21 @@
                     document.getElementById('col-emissive').value = "#00FFFF";
                     document.getElementById('sl-emissive').value = 1.5;
                     document.getElementById('tg-wire').checked = true;
-                    globalPBRMaterial.transparent = true;
-                    globalPBRMaterial.opacity = 0.6;
-                    globalPBRMaterial.blending = THREE.AdditiveBlending;
+                    
+                    activeMaterials.forEach(mat => {
+                        mat.transparent = true;
+                        mat.opacity = 0.6;
+                        mat.blending = THREE.AdditiveBlending;
+                    });
                     break;
             }
             
             forcePBRUpdate();
         }
 
-        // --- ACTUALIZADOR DE SHADER ---
+        // --- ACTUALIZADOR DE CONTROL PRECISO ---
         function forcePBRUpdate() {
-            if (!globalPBRMaterial || currentPreset === 'original') return;
+            if (activeMaterials.length === 0) return;
 
             const cBase = document.getElementById('col-base').value;
             const r = parseFloat(document.getElementById('sl-rough').value);
@@ -729,36 +703,39 @@
             document.getElementById('val-clear').innerText = cl.toFixed(2);
             document.getElementById('val-emissive').innerText = eInt.toFixed(1);
 
-            // Aplicar Propiedades al GPU
-            globalPBRMaterial.color.set(cBase);
-            globalPBRMaterial.roughness = r;
-            globalPBRMaterial.metalness = m;
-            globalPBRMaterial.clearcoat = cl;
-            
-            globalPBRMaterial.emissive.set(cGlow);
-            globalPBRMaterial.emissiveIntensity = eInt;
-            globalPBRMaterial.wireframe = w;
+            // Inyectamos a todas las mallas activas sin recrear instancias
+            activeMaterials.forEach(mat => {
+                mat.color.set(cBase);
+                mat.roughness = r;
+                mat.metalness = m;
+                mat.clearcoat = cl;
+                
+                mat.emissive.set(cGlow);
+                mat.emissiveIntensity = eInt;
+                mat.wireframe = w;
 
-            // Inyección de Textura Custom
-            if (customUserTexture && currentPreset !== 'holo') {
-                globalPBRMaterial.map = customUserTexture;
-                globalPBRMaterial.bumpMap = customUserTexture;
-                globalPBRMaterial.bumpScale = 0.05;
-            } else {
-                globalPBRMaterial.map = null;
-                globalPBRMaterial.bumpMap = null;
-            }
+                // Inyección Condicional de Textura Custom
+                if (customUserTexture && currentPreset !== 'holo') {
+                    mat.map = customUserTexture;
+                    mat.bumpMap = customUserTexture;
+                    mat.bumpScale = 0.05;
+                } else {
+                    mat.map = null;
+                    mat.bumpMap = null;
+                }
+                
+                mat.needsUpdate = true;
+            });
 
+            // Escalado Multiplicador UV (Tiling)
             if (customUserTexture && !document.getElementById('tex-controls').classList.contains('hidden')) {
                 const tile = parseFloat(document.getElementById('sl-tile').value);
                 document.getElementById('val-tile').innerText = tile.toFixed(1);
                 customUserTexture.repeat.set(tile, tile);
             }
-
-            globalPBRMaterial.needsUpdate = true;
         }
 
-        // --- EXPORTACIÓN MP4 / PNG ---
+        // --- STUDIO RECORDER (MP4 NATIVO) ---
         function exportPNG() {
             try {
                 renderer.render(scene, camera);
@@ -779,12 +756,17 @@
 
             if (!isRecording) {
                 try {
+                    // Frame lock a 30fps para estabilidad de CPU
                     const stream = renderer.domElement.captureStream(30); 
                     let mimeType = 'video/webm;codecs=vp9';
                     let extension = 'webm';
                     
+                    // Forzar el códec H.264 (MP4) si el navegador de escritorio lo soporta
                     if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
                         mimeType = 'video/mp4;codecs=avc1'; 
+                        extension = 'mp4';
+                    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                        mimeType = 'video/mp4'; 
                         extension = 'mp4';
                     }
 
@@ -811,7 +793,7 @@
                     recText.innerText = "DETENER GRABACIÓN";
                     btn.classList.add('sgx-btn-red');
                 } catch(e) {
-                    alert("Tu navegador no soporta captura de video nativa.");
+                    alert("Tu navegador restringe la grabación directa de canvas. Usa la captura PNG.");
                 }
             } else {
                 mediaRecorder.stop();
@@ -833,13 +815,17 @@
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
             
+            // Floating 
             if (flags.levitate && currentModel.children.length > 0) {
                 const baseY = currentModel.userData.baseY || 0;
                 currentModel.position.y = baseY + Math.sin(time * 1.5) * 0.015;
             }
 
-            if (currentPreset === 'holo' && globalPBRMaterial) {
-                globalPBRMaterial.opacity = 0.4 + (Math.sin(time * 4) * 0.4);
+            // Holo Pulse Engine
+            if (currentPreset === 'holo' && activeMaterials.length > 0) {
+                activeMaterials.forEach(m => {
+                    m.opacity = 0.4 + (Math.sin(time * 4) * 0.4);
+                });
             }
 
             controls.update();
