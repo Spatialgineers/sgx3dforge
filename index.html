@@ -2,1215 +2,848 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGX Synthesize Hub | Advanced 2-in-1 Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SGX 3D FORGE</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Space Grotesk', sans-serif; color: #fff; user-select: none; }
-        
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
-        #ui-layer { pointer-events: none; z-index: 10; position: absolute; inset: 0; display: flex; flex-col; padding: 1.5rem; }
-        .interactive { pointer-events: auto; }
-        
-        /* Glassmorphism SGX */
-        .sgx-glass { background: rgba(15, 20, 30, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(50, 82, 123, 0.5); box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-        .sgx-panel { background: rgba(0, 0, 0, 0.6); border: 1px solid #32527B; border-radius: 8px; padding: 1rem; }
-        
-        /* Botones SGX */
-        .sgx-btn { background: linear-gradient(135deg, #32527B 0%, #1a2a40 100%); border: 1px solid #FDCC0D; color: white; padding: 0.75rem 1.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; clip-path: polygon(10px 0, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s; cursor: pointer; }
-        .sgx-btn:hover { background: #FDCC0D; color: black; box-shadow: 0 0 15px rgba(253, 204, 13, 0.6); }
-        .sgx-btn-active { background: #FDCC0D; color: black; }
-        
-        .hidden-view { display: none !important; }
-        
-        /* Glitch UI text */
-        .glitch-text { text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; animation: glitch-anim 2s infinite linear alternate-reverse; }
-        @keyframes glitch-anim { 0% { text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; } 50% { text-shadow: -2px 0 #00ffff, 2px 0 #ff00ff; } 100% { text-shadow: 2px -2px #00ffff, -2px 2px #ff00ff; } }
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-        /* Game Score Float */
-        .floating-score { position: absolute; color: #FDCC0D; font-size: 3rem; font-weight: bold; pointer-events: none; animation: floatUp 1s forwards; text-shadow: 0 0 15px #FDCC0D; }
-        @keyframes floatUp { to { opacity: 0; transform: translateY(-100px) scale(1.5); } }
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #030303; font-family: 'Orbitron', sans-serif; color: white; user-select: none; }
+        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; outline: none; }
+        
+        /* SGX Glassmorphism */
+        .sgx-panel {
+            background: rgba(8, 12, 16, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.9);
+            clip-path: polygon(0 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+        }
+        .sgx-border-l { border-left: 3px solid #00FFFF; }
+        .sgx-border-gold { border-left: 3px solid #FDCC0D; }
+        .sgx-border-red { border-left: 3px solid #FF0055; }
+        
+        /* Botones Tácticos SGX */
+        .sgx-btn {
+            background: linear-gradient(90deg, rgba(26, 26, 26, 0.9), rgba(50, 82, 123, 0.4));
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px;
+            clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+            cursor: pointer;
+        }
+        .sgx-btn:hover, .sgx-btn.active {
+            background: linear-gradient(90deg, #00FFFF, #32527B);
+            color: #050505 !important; font-weight: 900;
+            transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,255,255,0.3);
+        }
+        .sgx-btn-gold:hover, .sgx-btn-gold.active { 
+            background: linear-gradient(90deg, #FDCC0D, #B87333); 
+            box-shadow: 0 5px 15px rgba(253,204,13,0.3); border-color: #FFF; color: #050505 !important;
+        }
+        .sgx-btn-red { border-color: #FF0055; }
+        .sgx-btn-red:hover { 
+            background: linear-gradient(90deg, #FF0055, #880022); 
+            box-shadow: 0 5px 20px rgba(255,0,85,0.5); color: white !important; border-color: #FFF;
+        }
+
+        .rec-blink { animation: blinker 1s linear infinite; color: #FF0055; text-shadow: 0 0 10px #FF0055;}
+        @keyframes blinker { 50% { opacity: 0.2; } }
+
+        /* Controles Deslizantes y de Color */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; margin: 8px 0; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+        input[type=range]::-webkit-slider-thumb { height: 14px; width: 10px; background: #00FFFF; cursor: pointer; -webkit-appearance: none; margin-top: -5px; border-radius: 2px; box-shadow: 0 0 10px rgba(0,255,255,0.6); }
+        
+        input[type=color] { -webkit-appearance: none; border: none; width: 26px; height: 26px; border-radius: 4px; cursor: pointer; padding: 0; background: none; border: 1px solid rgba(255,255,255,0.2); }
+        input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type=color]::-webkit-color-swatch { border: 1px solid #ffffff; border-radius: 3px; }
+
+        /* Toggles */
+        .toggle-checkbox:checked + .toggle-label { background-color: #00FFFF; }
+        .toggle-checkbox:checked + .toggle-label:after { transform: translateX(100%); border-color: white; }
+        .toggle-gold:checked + .toggle-label { background-color: #FDCC0D; }
+
+        /* Pantalla de Carga y Drop Zone */
+        #drop-zone { transition: all 0.3s ease; }
+        #drop-zone.dragover { background: rgba(0, 255, 255, 0.1); border: 2px dashed #00FFFF; transform: scale(1.02); }
+        
+        .loader { border: 3px solid rgba(0,255,255,0.1); border-top: 3px solid #00FFFF; border-radius: 50%; width: 60px; height: 60px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body>
 
     <div id="canvas-container"></div>
 
-    <div id="ui-layer">
-        <header class="interactive w-full max-w-7xl mx-auto flex justify-between items-center bg-black/60 p-4 rounded-xl border border-gray-800 backdrop-blur-md mb-6">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full border-2 border-[#FDCC0D] flex items-center justify-center font-bold text-[#FDCC0D] text-xl shadow-[0_0_15px_rgba(253,204,13,0.5)]">S</div>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-widest uppercase text-white leading-none">SGX<span class="text-[#32527B]">.</span>Synthesize</h1>
-                    <p class="text-[10px] text-[#FDCC0D] tracking-[0.2em] font-mono">> ADVANCED SPATIAL ENGINE</p>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="switchMode('play')" id="tab-play" class="sgx-btn sgx-btn-active">🎮 MODO PLAY (TEST)</button>
-                <button onclick="switchMode('build')" id="tab-build" class="sgx-btn">⚙️ MODO BUILD (FORGE)</button>
-            </div>
-        </header>
+    <!-- Toggle Cinemático -->
+    <button id="btn-cinematic" class="absolute top-4 right-4 z-50 text-[#00FFFF] hover:text-white transition-all text-2xl hidden bg-black/60 p-4 rounded-full backdrop-blur-md border border-[#00FFFF]/30 shadow-lg cursor-pointer">
+        <i class="fa-solid fa-eye-slash" id="icon-cine"></i>
+    </button>
 
-        <main id="mode-play" class="flex-1 flex gap-6 w-full max-w-7xl mx-auto">
-            <div class="interactive sgx-glass w-72 rounded-xl p-5 flex flex-col gap-3 h-fit">
-                <h3 class="text-xs text-gray-400 tracking-widest uppercase mb-2 border-b border-gray-700 pb-2">Selecciona un Pilar</h3>
-                <button onclick="setPlayPillar('system')" id="nav-system" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">01. SGX.System</button>
-                <button onclick="setPlayPillar('showcase')" id="nav-showcase" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">02. SGX.Showcase</button>
-                <button onclick="setPlayPillar('spark')" id="nav-spark" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">03. SGX.Spark</button>
-                <button onclick="setPlayPillar('story')" id="nav-story" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">04. SGX.Story</button>
-                <button onclick="setPlayPillar('stage')" id="nav-stage" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">05. SGX.Stage</button>
+    <!-- Zona de Ingesta Principal (Totalmente Desbloqueada) -->
+    <div id="drop-zone" class="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-auto bg-[#030303] bg-opacity-95 backdrop-blur-md transition-all duration-500">
+        <div class="sgx-panel sgx-border-l p-8 md:p-14 text-center max-w-2xl mx-4">
+            <div class="relative inline-block mb-6 flex items-center justify-center gap-4">
+                <i class="fa-solid fa-bolt text-5xl text-[#00FFFF] drop-shadow-[0_0_15px_rgba(0,255,255,0.5)]"></i>
+                <i class="fa-solid fa-gear text-6xl text-[#FDCC0D] animate-[spin_4s_linear_infinite] drop-shadow-[0_0_15px_rgba(253,204,13,0.5)]"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-2 tracking-widest">SGX 3D <span class="text-[#00FFFF]">FORGE</span></h1>
+            <p class="text-[#FDCC0D] text-xs md:text-sm mb-6 uppercase tracking-widest font-bold">The Ultimate VisDev Studio</p>
+            <p class="text-gray-400 text-xs mb-8 max-w-md mx-auto leading-relaxed">
+                Naked Mesh Protocol Activo. Ingresa tu modelo 3D. El motor eliminará automáticamente sus texturas, manteniendo sus UVs intactos para otorgarte control físico y estético absoluto.
+            </p>
+
+            <div class="flex flex-wrap justify-center gap-2 mb-8 text-[10px] font-bold text-[#00FFFF]">
+                <span class="px-3 py-1.5 border border-[#00FFFF]/30 bg-black/60 rounded">UNIVERSAL UPLOAD (GLB / STL / OBJ / FBX / PLY)</span>
             </div>
 
-            <div class="interactive flex-1 flex flex-col justify-end">
-                <div class="sgx-glass p-8 rounded-xl border-t-4 border-t-[#FDCC0D] max-w-2xl w-full relative">
-                    
-                    <div id="play-system" class="play-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.System</h2>
-                        <p class="text-sm text-gray-300 mb-4">Captura de datos y lógica base. El motor registra tu entorno corporativo.</p>
-                        <div class="sgx-panel font-mono text-xs text-[#00ffff]">
-                            <p>> INICIANDO PROTOCOLOS PARA: <span id="sys-brand-display" class="font-bold text-[#FDCC0D]">TU MARCA</span></p>
-                            <p>> ESTADO DE SERVIDORES: <span class="text-green-400">OPTIMIZADO</span></p>
-                            <input type="text" class="w-full bg-transparent border-b border-[#32527B] mt-4 text-white outline-none focus:border-[#00ffff] py-1" placeholder="Ejecutar comando (Simulado)...">
-                        </div>
-                    </div>
-
-                    <div id="play-showcase" class="play-view hidden-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Showcase</h2>
-                        <p class="text-sm text-gray-300 mb-4">Manipula el gemelo digital en tiempo real. <b>Arrastra para orbitar. Haz scroll para zoom.</b></p>
-                        <div class="grid grid-cols-2 gap-4 sgx-panel">
-                            <div>
-                                <label class="text-[10px] text-[#FDCC0D] block mb-1">COLOR MATERIAL</label>
-                                <input type="color" id="play-color" oninput="updateCoreMaterial()" class="w-full h-8 bg-transparent cursor-pointer">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-[#FDCC0D] block mb-1">RUGOSIDAD (ROUGHNESS)</label>
-                                <input type="range" id="play-rough" min="0" max="1" step="0.1" oninput="updateCoreMaterial()" class="w-full accent-[#FDCC0D]">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-[#FDCC0D] block mb-1">METALIZADO (METALNESS)</label>
-                                <input type="range" id="play-metal" min="0" max="1" step="0.1" oninput="updateCoreMaterial()" class="w-full accent-[#FDCC0D]">
-                            </div>
-                            <div class="flex items-center gap-2 mt-4">
-                                <input type="checkbox" id="play-wireframe" onchange="updateCoreMaterial()" class="w-4 h-4 accent-[#FDCC0D]">
-                                <label class="text-[10px] text-[#FDCC0D]">MODO WIREFRAME</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="play-spark" class="play-view hidden-view text-center">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Spark <span class="text-xs bg-[#FDCC0D] text-black px-2 py-1 rounded ml-2">FLAPPY CORE</span></h2>
-                        <p class="text-sm text-gray-300 mb-4">Esquiva los muros rojos. <b>Haz click en cualquier parte o presiona ESPACIO para saltar.</b></p>
-                        <div class="flex justify-between items-center sgx-panel mb-4">
-                            <span class="text-[#FDCC0D] font-bold">PUNTOS: <span id="game-score" class="text-2xl text-white">0</span></span>
-                            <button id="btn-game-start" onclick="toggleGame()" class="bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-2 rounded">INICIAR RETO</button>
-                        </div>
-                        <p class="text-[10px] text-gray-500">Métricas actuales (Editables en BUILD): Gravedad: <span id="disp-grav"></span> | Velocidad: <span id="disp-spd"></span></p>
-                    </div>
-
-                    <div id="play-story" class="play-view hidden-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Story</h2>
-                        <p class="text-sm text-gray-300 mb-4">La narrativa altera el entorno. Toma una decisión.</p>
-                        <div class="sgx-panel mb-4 text-center">
-                            <p class="text-[#FDCC0D] font-mono text-sm mb-2" id="story-narrative">Tu marca enfrenta a: <span class="font-bold text-white" id="disp-enemy">El Contenido Estático</span></p>
-                            <p class="text-xs text-gray-400 mb-6">Elige tu camino para alcanzar: <span class="font-bold text-white" id="disp-goal">Retención Total</span></p>
-                            <div class="flex gap-4">
-                                <button onclick="triggerStory('A')" class="flex-1 bg-gray-800 hover:bg-[#32527B] border border-gray-600 p-3 rounded font-bold transition text-xs" id="disp-btnA">ATACAR DIRECTO</button>
-                                <button onclick="triggerStory('B')" class="flex-1 bg-gray-800 hover:bg-[#FDCC0D] hover:text-black border border-gray-600 p-3 rounded font-bold transition text-xs" id="disp-btnB">EVADIR Y OBSERVAR</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="play-stage" class="play-view hidden-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Stage</h2>
-                        <p class="text-sm text-gray-300 mb-4">Aplica un Ubershader que afecta todo el espacio digital.</p>
-                        <div class="grid grid-cols-3 gap-3">
-                            <button onclick="applyShader('clean')" class="bg-gray-800 hover:bg-white hover:text-black border border-gray-600 py-3 rounded font-bold text-xs">CLEAN (CORP)</button>
-                            <button onclick="applyShader('cyberpunk')" class="bg-[#0f1b29] text-[#00ffff] hover:bg-[#00ffff] hover:text-black border border-[#00ffff] py-3 rounded font-bold text-xs">GLITCH (NEÓN)</button>
-                            <button onclick="applyShader('fire')" class="bg-[#2a0e05] text-[#ff3300] hover:bg-[#ff3300] hover:text-black border border-[#ff3300] py-3 rounded font-bold text-xs">NCANDELA (FIRE)</button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </main>
-
-        <main id="mode-build" class="flex-1 flex flex-col justify-end w-full max-w-7xl mx-auto hidden-view">
-            <div class="interactive sgx-glass rounded-xl p-8 w-full max-w-xl ml-auto border-t-4 border-t-[#32527B]">
-                <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-                    <h2 class="text-2xl font-bold uppercase text-white">The Forge (Config)</h2>
-                    <span class="text-xs bg-[#32527B] text-white px-2 py-1 rounded">GLOBAL SETTINGS</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6 max-h-[50vh] overflow-y-auto pr-2">
-                    
-                    <div class="col-span-2 sgx-panel">
-                        <h3 class="text-sm text-[#FDCC0D] font-bold mb-2">1. BRANDING (System)</h3>
-                        <input type="text" id="cfg-brand" value="Spatialgineers" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-sm text-white" placeholder="Nombre de Marca">
-                    </div>
-
-                    <div class="col-span-2 sgx-panel">
-                        <h3 class="text-sm text-[#FDCC0D] font-bold mb-2">3. MÉTRICAS FLAPPY JUMP (Spark)</h3>
-                        <label class="text-[10px] text-gray-400">GRAVEDAD (CAÍDA)</label>
-                        <input type="range" id="cfg-gravity" min="0.01" max="0.1" step="0.01" value="0.03" oninput="syncConfig()" class="w-full accent-[#FDCC0D] mb-2">
-                        <label class="text-[10px] text-gray-400">VELOCIDAD OBSTÁCULOS</label>
-                        <input type="range" id="cfg-speed" min="0.05" max="0.3" step="0.01" value="0.1" oninput="syncConfig()" class="w-full accent-[#FDCC0D]">
-                    </div>
-
-                    <div class="col-span-2 sgx-panel">
-                        <h3 class="text-sm text-[#FDCC0D] font-bold mb-2">4. LORE ESTRATÉGICO (Story)</h3>
-                        <input type="text" id="cfg-enemy" value="El Contenido Estático" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-sm text-white mb-2" placeholder="Enemigo">
-                        <input type="text" id="cfg-goal" value="Retención Masiva" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-sm text-white mb-2" placeholder="Recompensa">
-                        <div class="flex gap-2">
-                            <input type="text" id="cfg-btnA" value="ATACAR CON 3D" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-xs text-white" placeholder="Botón A">
-                            <input type="text" id="cfg-btnB" value="CREAR GAMING" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-xs text-white" placeholder="Botón B">
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="mt-6 flex gap-4">
-                    <button onclick="switchMode('play')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded">← PROBAR EN PLAY</button>
-                    <button onclick="exportHTML()" class="flex-1 sgx-btn !bg-[#FDCC0D] !text-black">💾 EMPAQUETAR HTML</button>
-                </div>
-            </div>
-        </main>
-
+            <label for="file-upload" class="sgx-btn px-8 py-5 text-white inline-block w-full text-base font-bold shadow-lg shadow-[#00FFFF]/20">
+                <i class="fa-solid fa-bolt mr-2"></i> INYECTAR GEOMETRÍA AL NÚCLEO
+            </label>
+            <input id="file-upload" type="file" class="hidden">
+        </div>
     </div>
 
-    <script>
-        // ==========================================
-        // CONFIGURACIÓN GLOBAL (Atada al BUILDER)
-        // ==========================================
-        const Config = {
-            brand: 'Spatialgineers',
-            spark: { gravity: 0.03, obstacleSpeed: 0.1, jumpForce: 0.4 },
-            story: { enemy: 'El Contenido Estático', goal: 'Retención Masiva', btnA: 'ATACAR CON 3D', btnB: 'CREAR GAMING' },
-            shader: 'clean'
-        };
+    <!-- Pantalla de Procesamiento -->
+    <div id="loading-screen" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-[#030303] bg-opacity-95 backdrop-blur-lg">
+        <div class="loader mb-6"></div>
+        <p class="text-[#00FFFF] font-black text-base tracking-widest animate-pulse" id="loading-text">FORJANDO MATRIZ 3D...</p>
+        <p class="text-red-500 font-bold text-xs mt-4 hidden" id="error-text">ERROR: EL ARCHIVO NO ES LEGIBLE</p>
+    </div>
 
-        // ==========================================
-        // THREE.JS ENGINE CORE
-        // ==========================================
-        let scene, camera, renderer, orbitControls;
-        let coreGroup, coreMesh, wireMesh;
-        let particlesSystem, obstacles = [];
-        let lights = {};
+    <!-- HUD CENTRAL -->
+    <div id="hud" class="hidden absolute inset-0 pointer-events-none z-20 flex flex-col justify-between p-4 md:p-6 overflow-hidden">
         
-        // Game State Variables
-        let isGameActive = false;
-        let velocityY = 0;
-        let score = 0;
-
-        // Shader clones
-        let glitchClones = [];
-
-        function init3D() {
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x050505, 0.025);
-
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(-2, 0, 7);
-
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            document.getElementById('canvas-container').appendChild(renderer.domElement);
-
-            orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
-            orbitControls.enableDamping = true;
-            orbitControls.dampingFactor = 0.05;
-
-            // CORE OBJECT (El Asset o la nave)
-            coreGroup = new THREE.Group();
-            scene.add(coreGroup);
-
-            const geom = new THREE.TorusKnotGeometry(1.2, 0.4, 128, 16);
-            const mat = new THREE.MeshStandardMaterial({ color: '#32527B', roughness: 0.2, metalness: 0.8 });
-            coreMesh = new THREE.Mesh(geom, mat);
-            coreGroup.add(coreMesh);
-
-            wireMesh = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ color: '#FDCC0D', wireframe: true, transparent: true, opacity: 0 }));
-            coreGroup.add(wireMesh);
-
-            // ILUMINACIÓN
-            lights.ambient = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(lights.ambient);
+        <div class="flex flex-col md:flex-row justify-between items-start w-full gap-4">
             
-            lights.point1 = new THREE.PointLight(0xffffff, 2, 20);
-            lights.point1.position.set(5, 5, 5);
-            scene.add(lights.point1);
-
-            lights.point2 = new THREE.PointLight(0x32527B, 2, 20);
-            lights.point2.position.set(-5, -5, -5);
-            scene.add(lights.point2);
-
-            // PARTÍCULAS BASE
-            const pGeom = new THREE.BufferGeometry();
-            const pCount = 2000;
-            const posArray = new Float32Array(pCount * 3);
-            for(let i=0; i<pCount*3; i++) posArray[i] = (Math.random() - 0.5) * 30;
-            pGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            particlesSystem = new THREE.Points(pGeom, new THREE.PointsMaterial({ size: 0.05, color: 0xffffff, transparent: true, opacity: 0.5 }));
-            scene.add(particlesSystem);
-
-            // GAME INPUTS (Saltar)
-            window.addEventListener('pointerdown', (e) => {
-                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && isGameActive) {
-                    jump();
-                }
-            });
-            window.addEventListener('keydown', (e) => {
-                if(e.code === 'Space' && isGameActive) jump();
-            });
-
-            animate();
-        }
-
-        function jump() {
-            velocityY = Config.spark.jumpForce;
-        }
-
-        function spawnObstacle() {
-            if(!isGameActive) return;
-            const geom = new THREE.BoxGeometry(1, 4, 1);
-            const mat = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0x550000 });
-            const obs = new THREE.Mesh(geom, mat);
-            obs.position.set(15, (Math.random() - 0.5) * 6, 0); // Spawnea a la derecha
-            scene.add(obs);
-            obstacles.push(obs);
-            
-            setTimeout(spawnObstacle, 1500); // Siguiente en 1.5s
-        }
-
-        function toggleGame() {
-            isGameActive = !isGameActive;
-            const btn = document.getElementById('btn-game-start');
-            
-            if(isGameActive) {
-                btn.innerText = "DETENER RETO";
-                btn.classList.replace('bg-green-500', 'bg-red-500');
-                orbitControls.enabled = false; // Desactivar órbita al jugar
-                camera.position.set(0,0,12); // Alejar cámara para ver en 2.5D
-                coreGroup.position.set(-4, 0, 0); // Nave a la izquierda
-                score = 0;
-                document.getElementById('game-score').innerText = score;
-                spawnObstacle();
-            } else {
-                btn.innerText = "INICIAR RETO";
-                btn.classList.replace('bg-red-500', 'bg-green-500');
-                orbitControls.enabled = true;
-                camera.position.set(-2,0,7);
-                coreGroup.position.set(0,0,0);
-                // Limpiar obstáculos
-                obstacles.forEach(o => scene.remove(o));
-                obstacles = [];
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = Date.now() * 0.001;
-
-            if(!isGameActive) {
-                // Rotación Showcase normal
-                coreGroup.rotation.x += 0.005;
-                coreGroup.rotation.y += 0.01;
-            } else {
-                // FÍSICAS SPARK (Flappy Logic)
-                velocityY -= Config.spark.gravity;
-                coreGroup.position.y += velocityY;
-                coreGroup.rotation.x = -velocityY; // Pitch visual al caer/saltar
-
-                // Límites de pantalla
-                if(coreGroup.position.y > 6) coreGroup.position.y = 6;
-                if(coreGroup.position.y < -6) { coreGroup.position.y = -6; velocityY = 0; }
-
-                // Mover obstáculos y Colisiones
-                for(let i = obstacles.length - 1; i >= 0; i--) {
-                    let obs = obstacles[i];
-                    obs.position.x -= Config.spark.obstacleSpeed;
-
-                    // Hitbox basico
-                    let dist = coreGroup.position.distanceTo(obs.position);
-                    if(dist < 2.5) {
-                        // Colisión: Efecto visual y resta puntos
-                        obs.material.emissive.setHex(0xffffff);
-                        score -= 5;
-                        document.getElementById('game-score').innerText = score;
-                        scene.remove(obs);
-                        obstacles.splice(i, 1);
-                    } else if (obs.position.x < -6 && !obs.passed) {
-                        // Pasó el obstáculo
-                        obs.passed = true;
-                        score += 10;
-                        document.getElementById('game-score').innerText = score;
-                    } else if (obs.position.x < -15) {
-                        scene.remove(obs);
-                        obstacles.splice(i, 1);
-                    }
-                }
-            }
-
-            // STAGE (Shaders Globales Procedurales)
-            const positions = particlesSystem.geometry.attributes.position.array;
-            
-            if(Config.shader === 'fire') {
-                // Fuego Sube
-                for(let i=1; i<2000*3; i+=3) {
-                    positions[i] += 0.1;
-                    if(positions[i] > 15) positions[i] = -15;
-                }
-                lights.point1.intensity = 2 + Math.sin(time*10); // Pulso rojo
-                document.getElementById('canvas-container').style.filter = "sepia(1) hue-rotate(-30deg) saturate(3)";
-            } 
-            else if (Config.shader === 'cyberpunk') {
-                // Glitch Jitter en X
-                if(Math.random() > 0.9) coreGroup.position.x += (Math.random() - 0.5) * 0.5;
-                else if(!isGameActive) coreGroup.position.x = 0;
+            <!-- PANEL IZQUIERDO: RENDER Y ASSETS -->
+            <div class="flex flex-col gap-3 w-full md:w-64 h-fit">
                 
-                for(let i=0; i<2000*3; i+=3) positions[i] += (Math.random()-0.5)*0.1; // Ruido
-                document.getElementById('canvas-container').style.filter = "contrast(1.5) saturate(2) hue-rotate(45deg)";
-            }
-            else {
-                // Clean
-                for(let i=1; i<2000*3; i+=3) {
-                    positions[i] -= 0.02; // Caen suave
-                    if(positions[i] < -15) positions[i] = 15;
-                }
-                document.getElementById('canvas-container').style.filter = "none";
-            }
-            particlesSystem.geometry.attributes.position.needsUpdate = true;
+                <div class="sgx-panel sgx-border-l p-5 pointer-events-auto">
+                    <h2 class="text-xs font-black text-[#00FFFF] border-b border-gray-700 pb-2"><i class="fa-solid fa-database mr-2"></i>ASSET DATA</h2>
+                    <p id="asset-name" class="text-[10px] text-gray-300 font-bold truncate mt-2">mesh_data.bin</p>
+                    <div class="flex justify-between text-[10px] mt-3"><span class="text-gray-500">VÉRTICES:</span><span id="stat-verts" class="text-white font-mono bg-black/50 px-2 py-0.5 rounded">0</span></div>
+                    
+                    <!-- DRAG AND DROP TEXTURAS -->
+                    <div class="mt-4 border border-dashed border-[#FDCC0D]/60 bg-black/50 p-4 rounded text-center cursor-pointer hover:bg-[#FDCC0D]/20 transition-all relative group">
+                        <i class="fa-solid fa-image text-[#FDCC0D] text-2xl mb-2 group-hover:scale-110 transition-transform"></i>
+                        <p class="text-[9px] text-white font-bold leading-tight">INYECCIÓN DE TEXTURA<br><span class="text-gray-400 font-normal">(Sube tu JPG/PNG)</span></p>
+                        <!-- Restringimos a imágenes porque es solo para inyectar texturas -->
+                        <input id="tex-upload" type="file" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
+                    </div>
+                </div>
 
-            orbitControls.update();
-            renderer.render(scene, camera);
-        }
+                <!-- MÓDULO STUDIO EXPORT -->
+                <div class="sgx-panel sgx-border-red p-5 pointer-events-auto mt-2">
+                    <h2 class="text-xs font-black text-[#FF0055] border-b border-gray-700 pb-2"><i class="fa-solid fa-clapperboard mr-2"></i>STUDIO EXPORT</h2>
+                    
+                    <button id="btn-snapshot" class="sgx-btn w-full py-3 text-white mt-4 flex justify-center items-center gap-2 hover:border-[#00FFFF]">
+                        <i class="fa-solid fa-camera"></i> CAPTURAR FOTO
+                    </button>
 
-        // ==========================================
-        // UI & STATE MANAGEMENT
-        // ==========================================
-        
-        function switchMode(mode) {
-            syncConfig(); // Asegurar que todo lo de build se guarde
-            
-            document.getElementById('tab-play').className = `sgx-btn ${mode === 'play' ? 'sgx-btn-active' : ''}`;
-            document.getElementById('tab-build').className = `sgx-btn ${mode === 'build' ? 'sgx-btn-active' : ''}`;
-            
-            document.getElementById('mode-play').classList.toggle('hidden-view', mode !== 'play');
-            document.getElementById('mode-build').classList.toggle('hidden-view', mode !== 'build');
+                    <button id="btn-record" class="sgx-btn sgx-btn-red w-full py-3 text-white mt-2 flex justify-center items-center gap-2">
+                        <i id="rec-icon" class="fa-solid fa-circle text-[10px]"></i> <span id="rec-text" class="font-bold">GRABAR MP4</span>
+                    </button>
+                </div>
 
-            if(mode === 'play') {
-                setPlayPillar('system'); // Reset a panel 1
-                applyConfigToPlay(); // Inyectar datos del Forge al visual de Play
-            } else {
-                if(isGameActive) toggleGame(); // Apagar juego si entra a build
-            }
-        }
+                <button id="btn-reset" class="sgx-btn w-full py-3 text-gray-400 pointer-events-auto mt-auto hover:text-white"><i class="fa-solid fa-eject mr-2"></i> PURGAR SESIÓN</button>
+            </div>
 
-        function setPlayPillar(pillar) {
-            ['system', 'showcase', 'spark', 'story', 'stage'].forEach(p => {
-                document.getElementById(`nav-${p}`).style.borderColor = p === pillar ? '#FDCC0D' : 'transparent';
-                document.getElementById(`nav-${p}`).style.color = p === pillar ? '#FDCC0D' : 'white';
-                document.getElementById(`play-${p}`).classList.toggle('hidden-view', p !== pillar);
-            });
-            // Stop game si sales de Spark
-            if(pillar !== 'spark' && isGameActive) toggleGame();
-        }
+            <!-- PANEL DERECHO: MATERIAL FORGE PRESETS -->
+            <div class="sgx-panel sgx-border-gold p-5 w-full md:w-[320px] pointer-events-auto flex flex-col gap-3 max-h-[80vh] overflow-y-auto no-scrollbar">
+                <h2 class="text-sm font-black text-[#FDCC0D] border-b border-gray-700 pb-2"><i class="fa-solid fa-fire-burner mr-2"></i>THE FORGE (PBR)</h2>
+                
+                <!-- SHADER PRESETS -->
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset" data-mat="original">ORIGINAL</button>
+                    <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset active" data-mat="mate">MATE PBR</button>
+                    <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset" data-mat="gold">ORO SGX</button>
+                    <button class="sgx-btn sgx-btn-gold text-white py-2.5 mat-preset" data-mat="glass">CRISTAL OSCURO</button>
+                    <button class="sgx-btn sgx-btn-gold text-[#00FFFF] py-2.5 mat-preset col-span-2" data-mat="holo">HYPER-HOLO</button>
+                </div>
 
-        // Leer inputs de Showcase
-        function updateCoreMaterial() {
-            coreMesh.material.color.set(document.getElementById('play-color').value);
-            coreMesh.material.roughness = parseFloat(document.getElementById('play-rough').value);
-            coreMesh.material.metalness = parseFloat(document.getElementById('play-metal').value);
-            wireMesh.material.opacity = document.getElementById('play-wireframe').checked ? 0.4 : 0;
-        }
+                <div class="bg-black/60 p-4 rounded mt-3 border border-gray-800">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-white mb-4">
+                        <span>COLOR BASE</span>
+                        <input type="color" id="col-base" value="#A0A0A0">
+                    </div>
 
-        // Shaders
-        function applyShader(type) {
-            Config.shader = type;
-            
-            // Reset lights & material to default before applying shader
-            lights.point1.color.setHex(0xffffff);
-            lights.point2.color.setHex(0x32527B);
-            coreMesh.material.emissive.setHex(0x000000);
-            scene.fog.color.setHex(0x050505);
+                    <!-- Tiling de Textura -->
+                    <div id="tex-controls" class="border-t border-gray-800 pt-3 mt-3 mb-3 hidden">
+                        <div class="flex justify-between text-[9px] text-[#00FFFF] font-bold mb-2">
+                            <span>ESCALA UV (TILING)</span><span id="val-tile" class="text-white">1.0</span>
+                        </div>
+                        <input type="range" id="sl-tile" min="0.1" max="15" step="0.1" value="1.0">
+                    </div>
 
-            if(type === 'fire') {
-                lights.point1.color.setHex(0xff3300);
-                lights.point2.color.setHex(0xff0000);
-                coreMesh.material.emissive.setHex(0x330500);
-                scene.fog.color.setHex(0x2a0000);
-            } else if (type === 'cyberpunk') {
-                lights.point1.color.setHex(0x00ffff);
-                lights.point2.color.setHex(0xff00ff);
-                coreMesh.material.emissive.setHex(0x002222);
-            }
-        }
+                    <div class="flex justify-between text-[10px] text-[#FDCC0D] font-bold mb-2">
+                        <span>ROUGHNESS (MATE)</span><span id="val-rough" class="text-white">0.30</span>
+                    </div>
+                    <input type="range" id="sl-rough" min="0" max="1" step="0.01" value="0.3">
+                    
+                    <div class="flex justify-between text-[10px] text-[#FDCC0D] font-bold mb-2 mt-4">
+                        <span>METALLIC (REFLEXIÓN)</span><span id="val-metal" class="text-white">0.20</span>
+                    </div>
+                    <input type="range" id="sl-metal" min="0" max="1" step="0.01" value="0.2">
 
-        // Story interaccion
-        function triggerStory(choice) {
-            const btn = document.getElementById(`disp-btn${choice}`);
-            btn.classList.add('bg-[#FDCC0D]', 'text-black');
-            
-            // Cambia el shader o el entorno basado en decision
-            if(choice === 'A') applyShader('fire');
-            if(choice === 'B') applyShader('cyberpunk');
-            
-            setTimeout(() => btn.classList.remove('bg-[#FDCC0D]', 'text-black'), 500);
-        }
+                    <!-- Clearcoat permanentemente visible para el Physical Material -->
+                    <div id="clearcoat-container" class="mt-4">
+                        <div class="flex justify-between text-[10px] text-[#00FFFF] font-bold mb-2">
+                            <span>CLEARCOAT (BARNIZ)</span><span id="val-clear" class="text-white">0.00</span>
+                        </div>
+                        <input type="range" id="sl-clear" min="0" max="1" step="0.01" value="0.0">
+                    </div>
 
-        // Sincronizar Formulario Build -> Config Global
-        function syncConfig() {
-            Config.brand = document.getElementById('cfg-brand').value || 'Spatialgineers';
-            Config.spark.gravity = parseFloat(document.getElementById('cfg-gravity').value);
-            Config.spark.obstacleSpeed = parseFloat(document.getElementById('cfg-speed').value);
-            
-            Config.story.enemy = document.getElementById('cfg-enemy').value;
-            Config.story.goal = document.getElementById('cfg-goal').value;
-            Config.story.btnA = document.getElementById('cfg-btnA').value;
-            Config.story.btnB = document.getElementById('cfg-btnB').value;
-        }
+                    <div class="w-full h-px bg-gray-700 my-4"></div>
 
-        // Inyectar Config Global -> Play UI
-        function applyConfigToPlay() {
-            document.getElementById('sys-brand-display').innerText = Config.brand.toUpperCase();
-            document.getElementById('disp-grav').innerText = Config.spark.gravity;
-            document.getElementById('disp-spd').innerText = Config.spark.obstacleSpeed;
-            
-            document.getElementById('disp-enemy').innerText = Config.story.enemy.toUpperCase();
-            document.getElementById('disp-goal').innerText = Config.story.goal.toUpperCase();
-            document.getElementById('disp-btnA').innerText = Config.story.btnA.toUpperCase();
-            document.getElementById('disp-btnB').innerText = Config.story.btnB.toUpperCase();
-        }
-
-        // Ventana Resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        init3D();
-        applyConfigToPlay();
-
-        // ==========================================
-        // EXPORTADOR DEL ECOSISTEMA
-        // ==========================================
-        function exportHTML() {
-            syncConfig();
-            const sOpen = "<scr" + "ipt>"; const sClose = "</scr" + "ipt>";
-            
-            const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${Config.brand} | SGX Experience</title>
-    <script src="https://cdn.tailwindcss.com">${sClose}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">${sClose}
-    <style>
-        body { margin:0; overflow:hidden; background:#050505; color:white; font-family:sans-serif; user-select:none; }
-        #canvas-bg { position:absolute; inset:0; z-index:0; }
-        .glass { background:rgba(0,0,0,0.7); border:1px solid #32527B; backdrop-filter:blur(10px); }
-        .hud { position:absolute; z-index:10; pointer-events:auto; }
-    </style>
-</head>
-<body>
-    <div id="canvas-bg"></div>
-    
-    <div class="hud inset-x-0 top-0 p-6 flex justify-between items-start pointer-events-none">
-        <h1 class="text-3xl font-bold uppercase tracking-widest">${Config.brand}</h1>
-        <div class="glass px-6 py-2 rounded text-center pointer-events-auto">
-            <p class="text-xs text-[#FDCC0D]">MÉTRICA</p>
-            <p class="text-3xl font-bold" id="score">0</p>
+                    <div class="flex justify-between items-center text-[10px] font-bold text-[#FF0055]">
+                        <span>GLOW (EMISIÓN)</span>
+                        <input type="color" id="col-emissive" value="#000000">
+                    </div>
+                    <div class="mt-2">
+                        <div class="flex justify-between text-[9px] text-gray-400 font-bold mb-2">
+                            <span>INTENSIDAD DE LUZ</span><span id="val-emissive" class="text-white">0.0</span>
+                        </div>
+                        <input type="range" id="sl-emissive" min="0" max="10" step="0.1" value="0">
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="hud inset-x-0 bottom-10 flex justify-center w-full pointer-events-none">
-        <div class="glass p-6 rounded-lg text-center max-w-lg w-full pointer-events-auto border-t-4 border-[#FDCC0D]">
-            <h2 class="text-xl font-bold mb-1">Misión: Vencer a ${Config.story.enemy}</h2>
-            <p class="text-sm text-gray-300 mb-4">Haz CLICK o ESPACIO para saltar y alcanzar <b>${Config.story.goal}</b>.</p>
-            <div class="flex gap-2">
-                <button class="flex-1 bg-[#32527B] text-white py-2 rounded font-bold text-xs" onclick="location.reload()">${Config.story.btnA}</button>
-                <button class="flex-1 bg-[#FDCC0D] text-black py-2 rounded font-bold text-xs" onclick="location.reload()">${Config.story.btnB}</button>
+        <!-- PANEL INFERIOR: ENTORNO Y CINEMÁTICA -->
+        <div class="w-full flex justify-center pb-2 mt-auto">
+            <div class="sgx-panel p-4 px-8 pointer-events-auto flex flex-wrap justify-center items-center gap-6 bg-black/95 rounded-full border-b-0 border-t-2 border-[#00FFFF]/50 shadow-[0_0_20px_rgba(0,255,255,0.15)]">
+                
+                <!-- Background Color Control -->
+                <div class="flex items-center gap-2" title="Color de Fondo (Contraste)">
+                    <i class="fa-solid fa-fill-drip text-[#00FFFF] text-xs"></i>
+                    <input type="color" id="col-bg" value="#0a0a0a">
+                </div>
+
+                <div class="w-px h-6 bg-gray-700 hidden md:block"></div>
+
+                <!-- Environment Light Intensity -->
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-sun text-[#FDCC0D] text-sm" title="Luz de Estudio"></i>
+                    <div class="w-20 md:w-28">
+                        <input type="range" id="sl-light" min="0" max="5" step="0.1" value="1.5">
+                    </div>
+                </div>
+                
+                <div class="w-px h-6 bg-gray-700 hidden md:block"></div>
+                
+                <div class="flex items-center gap-2 text-[10px] font-black text-gray-300 uppercase tracking-widest cursor-pointer">
+                    <span>ROTACIÓN</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="tg-rotate" class="sr-only peer" checked>
+                        <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#00FFFF] peer-checked:after:translate-x-full"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center gap-2 text-[10px] font-black text-gray-300 uppercase tracking-widest cursor-pointer">
+                    <span>LEVITAR</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="tg-levitate" class="sr-only peer" checked>
+                        <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#FDCC0D] peer-checked:after:translate-x-full"></div>
+                    </label>
+                </div>
+
+                <div class="flex items-center gap-2 text-[10px] font-black text-gray-300 uppercase tracking-widest cursor-pointer">
+                    <span>WIREFRAME</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="tg-wire" class="sr-only peer">
+                        <div class="w-8 h-4 bg-gray-700 peer-focus:outline-none rounded-full peer after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-[#FF0055] peer-checked:after:translate-x-full"></div>
+                    </label>
+                </div>
+
             </div>
         </div>
     </div>
 
-    ${sOpen}
-        let scene, camera, renderer, core;
-        let obstacles = [], velocityY = 0, score = 0;
-        let isGame = true;
-
-        function init() {
-            scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x050505, 0.02);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(0,0,12);
-            renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('canvas-bg').appendChild(renderer.domElement);
-
-            core = new THREE.Mesh(new THREE.TorusKnotGeometry(1.2,0.4,64,16), new THREE.MeshStandardMaterial({color:'#32527B', roughness:0.2}));
-            core.position.x = -4; scene.add(core);
-
-            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-            const l1 = new THREE.PointLight(0xffffff,2); l1.position.set(5,5,5); scene.add(l1);
-            
-            // Shader effect logic
-            if('${Config.shader}' === 'cyberpunk') { document.body.style.filter = 'contrast(1.5) hue-rotate(45deg)'; l1.color.setHex(0x00ffff); }
-            if('${Config.shader}' === 'fire') { document.body.style.filter = 'sepia(1) hue-rotate(-30deg) saturate(3)'; l1.color.setHex(0xff3300); }
-
-            window.addEventListener('pointerdown', jump);
-            window.addEventListener('keydown', (e)=> { if(e.code==='Space') jump(); });
-            
-            spawn(); animate();
-        }
-
-        function jump() { velocityY = ${Config.spark.jumpForce}; }
-        
-        function spawn() {
-            const obs = new THREE.Mesh(new THREE.BoxGeometry(1,4,1), new THREE.MeshStandardMaterial({color:0xff0055}));
-            obs.position.set(15, (Math.random()-0.5)*6, 0);
-            scene.add(obs); obstacles.push(obs);
-            setTimeout(spawn, 1500);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            velocityY -= ${Config.spark.gravity};
-            core.position.y += velocityY; core.rotation.x = -velocityY;
-            if(core.position.y > 6) core.position.y = 6;
-            if(core.position.y < -6) { core.position.y = -6; velocityY = 0; }
-
-            for(let i=obstacles.length-1; i>=0; i--) {
-                let o = obstacles[i]; o.position.x -= ${Config.spark.obstacleSpeed};
-                if(core.position.distanceTo(o.position) < 2.5) {
-                    score -= 5; document.getElementById('score').innerText = score; scene.remove(o); obstacles.splice(i,1);
-                } else if(o.position.x < -6 && !o.passed) {
-                    o.passed = true; score += 10; document.getElementById('score').innerText = score;
-                } else if(o.position.x < -15) { scene.remove(o); obstacles.splice(i,1); }
+    <!-- Import Maps THREE.JS -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
             }
-            renderer.render(scene, camera);
-        }
-        init();
-    ${sClose}
-</body>
-</html>`;
-            const blob = new Blob([html], {type: 'text/html'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `SGX_${Config.brand.replace(/\s+/g, '_')}_Game.html`;
-            a.click();
         }
     </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SGX Synthesize Hub | Advanced 2-in-1 Engine</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
-        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Space Grotesk', sans-serif; color: #fff; user-select: none; }
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+        import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
+        import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+        import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+
+        // --- ARQUITECTURA CORE ---
+        let scene, camera, renderer, controls, envTexture, mainLight;
+        let currentModel = new THREE.Group();
+        let allMeshes = [];
+        let originalMaterialsMap = new Map(); // Para retener el IP original
+        let globalPBRMaterial = null; 
+        let customUserTexture = null; 
+        let currentExtension = ''; 
+        let currentPreset = 'mate'; 
+        let clock = new THREE.Clock();
         
-        #canvas-container { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0; }
-        #ui-layer { pointer-events: none; z-index: 10; position: absolute; inset: 0; display: flex; flex-col; padding: 1.5rem; }
-        .interactive { pointer-events: auto; }
-        
-        /* Glassmorphism SGX */
-        .sgx-glass { background: rgba(15, 20, 30, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(50, 82, 123, 0.5); box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
-        .sgx-panel { background: rgba(0, 0, 0, 0.6); border: 1px solid #32527B; border-radius: 8px; padding: 1rem; }
-        
-        /* Botones SGX */
-        .sgx-btn { background: linear-gradient(135deg, #32527B 0%, #1a2a40 100%); border: 1px solid #FDCC0D; color: white; padding: 0.75rem 1.5rem; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; clip-path: polygon(10px 0, 10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: all 0.3s; cursor: pointer; }
-        .sgx-btn:hover { background: #FDCC0D; color: black; box-shadow: 0 0 15px rgba(253, 204, 13, 0.6); }
-        .sgx-btn-active { background: #FDCC0D; color: black; }
-        
-        .hidden-view { display: none !important; }
-        
-        /* Glitch UI text */
-        .glitch-text { text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; animation: glitch-anim 2s infinite linear alternate-reverse; }
-        @keyframes glitch-anim { 0% { text-shadow: 2px 0 #00ffff, -2px 0 #ff00ff; } 50% { text-shadow: -2px 0 #00ffff, 2px 0 #ff00ff; } 100% { text-shadow: 2px -2px #00ffff, -2px 2px #ff00ff; } }
+        let flags = { levitate: true, rotate: true, ui: true };
 
-        /* Game Score Float */
-        .floating-score { position: absolute; color: #FDCC0D; font-size: 3rem; font-weight: bold; pointer-events: none; animation: floatUp 1s forwards; text-shadow: 0 0 15px #FDCC0D; }
-        @keyframes floatUp { to { opacity: 0; transform: translateY(-100px) scale(1.5); } }
-    </style>
-</head>
-<body>
+        // Export Engine
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
 
-    <div id="canvas-container"></div>
+        // Nodos del DOM
+        const dropZone = document.getElementById('drop-zone');
+        const loadingScreen = document.getElementById('loading-screen');
+        const errorText = document.getElementById('error-text');
+        const hud = document.getElementById('hud');
+        const loadText = document.getElementById('loading-text');
+        const btnCinematic = document.getElementById('btn-cinematic');
+        const texControls = document.getElementById('tex-controls');
 
-    <div id="ui-layer">
-        <header class="interactive w-full max-w-7xl mx-auto flex justify-between items-center bg-black/60 p-4 rounded-xl border border-gray-800 backdrop-blur-md mb-6">
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full border-2 border-[#FDCC0D] flex items-center justify-center font-bold text-[#FDCC0D] text-xl shadow-[0_0_15px_rgba(253,204,13,0.5)]">S</div>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-widest uppercase text-white leading-none">SGX<span class="text-[#32527B]">.</span>Synthesize</h1>
-                    <p class="text-[10px] text-[#FDCC0D] tracking-[0.2em] font-mono">> ADVANCED SPATIAL ENGINE</p>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="switchMode('play')" id="tab-play" class="sgx-btn sgx-btn-active">🎮 MODO PLAY (TEST)</button>
-                <button onclick="switchMode('build')" id="tab-build" class="sgx-btn">⚙️ MODO BUILD (FORGE)</button>
-            </div>
-        </header>
+        initEngine();
 
-        <main id="mode-play" class="flex-1 flex gap-6 w-full max-w-7xl mx-auto">
-            <div class="interactive sgx-glass w-72 rounded-xl p-5 flex flex-col gap-3 h-fit">
-                <h3 class="text-xs text-gray-400 tracking-widest uppercase mb-2 border-b border-gray-700 pb-2">Selecciona un Pilar</h3>
-                <button onclick="setPlayPillar('system')" id="nav-system" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">01. SGX.System</button>
-                <button onclick="setPlayPillar('showcase')" id="nav-showcase" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">02. SGX.Showcase</button>
-                <button onclick="setPlayPillar('spark')" id="nav-spark" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">03. SGX.Spark</button>
-                <button onclick="setPlayPillar('story')" id="nav-story" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">04. SGX.Story</button>
-                <button onclick="setPlayPillar('stage')" id="nav-stage" class="text-left p-3 rounded hover:bg-[#32527B]/50 text-white font-bold text-sm transition border border-transparent">05. SGX.Stage</button>
-            </div>
-
-            <div class="interactive flex-1 flex flex-col justify-end">
-                <div class="sgx-glass p-8 rounded-xl border-t-4 border-t-[#FDCC0D] max-w-2xl w-full relative">
-                    
-                    <div id="play-system" class="play-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.System</h2>
-                        <p class="text-sm text-gray-300 mb-4">Captura de datos y lógica base. El motor registra tu entorno corporativo.</p>
-                        <div class="sgx-panel font-mono text-xs text-[#00ffff]">
-                            <p>> INICIANDO PROTOCOLOS PARA: <span id="sys-brand-display" class="font-bold text-[#FDCC0D]">TU MARCA</span></p>
-                            <p>> ESTADO DE SERVIDORES: <span class="text-green-400">OPTIMIZADO</span></p>
-                            <input type="text" class="w-full bg-transparent border-b border-[#32527B] mt-4 text-white outline-none focus:border-[#00ffff] py-1" placeholder="Ejecutar comando (Simulado)...">
-                        </div>
-                    </div>
-
-                    <div id="play-showcase" class="play-view hidden-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Showcase</h2>
-                        <p class="text-sm text-gray-300 mb-4">Manipula el gemelo digital en tiempo real. <b>Arrastra para orbitar. Haz scroll para zoom.</b></p>
-                        <div class="grid grid-cols-2 gap-4 sgx-panel">
-                            <div>
-                                <label class="text-[10px] text-[#FDCC0D] block mb-1">COLOR MATERIAL</label>
-                                <input type="color" id="play-color" oninput="updateCoreMaterial()" class="w-full h-8 bg-transparent cursor-pointer">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-[#FDCC0D] block mb-1">RUGOSIDAD (ROUGHNESS)</label>
-                                <input type="range" id="play-rough" min="0" max="1" step="0.1" oninput="updateCoreMaterial()" class="w-full accent-[#FDCC0D]">
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-[#FDCC0D] block mb-1">METALIZADO (METALNESS)</label>
-                                <input type="range" id="play-metal" min="0" max="1" step="0.1" oninput="updateCoreMaterial()" class="w-full accent-[#FDCC0D]">
-                            </div>
-                            <div class="flex items-center gap-2 mt-4">
-                                <input type="checkbox" id="play-wireframe" onchange="updateCoreMaterial()" class="w-4 h-4 accent-[#FDCC0D]">
-                                <label class="text-[10px] text-[#FDCC0D]">MODO WIREFRAME</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="play-spark" class="play-view hidden-view text-center">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Spark <span class="text-xs bg-[#FDCC0D] text-black px-2 py-1 rounded ml-2">FLAPPY CORE</span></h2>
-                        <p class="text-sm text-gray-300 mb-4">Esquiva los muros rojos. <b>Haz click en cualquier parte o presiona ESPACIO para saltar.</b></p>
-                        <div class="flex justify-between items-center sgx-panel mb-4">
-                            <span class="text-[#FDCC0D] font-bold">PUNTOS: <span id="game-score" class="text-2xl text-white">0</span></span>
-                            <button id="btn-game-start" onclick="toggleGame()" class="bg-green-500 hover:bg-green-400 text-black font-bold px-6 py-2 rounded">INICIAR RETO</button>
-                        </div>
-                        <p class="text-[10px] text-gray-500">Métricas actuales (Editables en BUILD): Gravedad: <span id="disp-grav"></span> | Velocidad: <span id="disp-spd"></span></p>
-                    </div>
-
-                    <div id="play-story" class="play-view hidden-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Story</h2>
-                        <p class="text-sm text-gray-300 mb-4">La narrativa altera el entorno. Toma una decisión.</p>
-                        <div class="sgx-panel mb-4 text-center">
-                            <p class="text-[#FDCC0D] font-mono text-sm mb-2" id="story-narrative">Tu marca enfrenta a: <span class="font-bold text-white" id="disp-enemy">El Contenido Estático</span></p>
-                            <p class="text-xs text-gray-400 mb-6">Elige tu camino para alcanzar: <span class="font-bold text-white" id="disp-goal">Retención Total</span></p>
-                            <div class="flex gap-4">
-                                <button onclick="triggerStory('A')" class="flex-1 bg-gray-800 hover:bg-[#32527B] border border-gray-600 p-3 rounded font-bold transition text-xs" id="disp-btnA">ATACAR DIRECTO</button>
-                                <button onclick="triggerStory('B')" class="flex-1 bg-gray-800 hover:bg-[#FDCC0D] hover:text-black border border-gray-600 p-3 rounded font-bold transition text-xs" id="disp-btnB">EVADIR Y OBSERVAR</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="play-stage" class="play-view hidden-view">
-                        <h2 class="text-3xl font-bold uppercase mb-2 text-white">SGX.Stage</h2>
-                        <p class="text-sm text-gray-300 mb-4">Aplica un Ubershader que afecta todo el espacio digital.</p>
-                        <div class="grid grid-cols-3 gap-3">
-                            <button onclick="applyShader('clean')" class="bg-gray-800 hover:bg-white hover:text-black border border-gray-600 py-3 rounded font-bold text-xs">CLEAN (CORP)</button>
-                            <button onclick="applyShader('cyberpunk')" class="bg-[#0f1b29] text-[#00ffff] hover:bg-[#00ffff] hover:text-black border border-[#00ffff] py-3 rounded font-bold text-xs">GLITCH (NEÓN)</button>
-                            <button onclick="applyShader('fire')" class="bg-[#2a0e05] text-[#ff3300] hover:bg-[#ff3300] hover:text-black border border-[#ff3300] py-3 rounded font-bold text-xs">NCANDELA (FIRE)</button>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        </main>
-
-        <main id="mode-build" class="flex-1 flex flex-col justify-end w-full max-w-7xl mx-auto hidden-view">
-            <div class="interactive sgx-glass rounded-xl p-8 w-full max-w-xl ml-auto border-t-4 border-t-[#32527B]">
-                <div class="flex justify-between items-center mb-6 border-b border-gray-700 pb-4">
-                    <h2 class="text-2xl font-bold uppercase text-white">The Forge (Config)</h2>
-                    <span class="text-xs bg-[#32527B] text-white px-2 py-1 rounded">GLOBAL SETTINGS</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6 max-h-[50vh] overflow-y-auto pr-2">
-                    
-                    <div class="col-span-2 sgx-panel">
-                        <h3 class="text-sm text-[#FDCC0D] font-bold mb-2">1. BRANDING (System)</h3>
-                        <input type="text" id="cfg-brand" value="Spatialgineers" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-sm text-white" placeholder="Nombre de Marca">
-                    </div>
-
-                    <div class="col-span-2 sgx-panel">
-                        <h3 class="text-sm text-[#FDCC0D] font-bold mb-2">3. MÉTRICAS FLAPPY JUMP (Spark)</h3>
-                        <label class="text-[10px] text-gray-400">GRAVEDAD (CAÍDA)</label>
-                        <input type="range" id="cfg-gravity" min="0.01" max="0.1" step="0.01" value="0.03" oninput="syncConfig()" class="w-full accent-[#FDCC0D] mb-2">
-                        <label class="text-[10px] text-gray-400">VELOCIDAD OBSTÁCULOS</label>
-                        <input type="range" id="cfg-speed" min="0.05" max="0.3" step="0.01" value="0.1" oninput="syncConfig()" class="w-full accent-[#FDCC0D]">
-                    </div>
-
-                    <div class="col-span-2 sgx-panel">
-                        <h3 class="text-sm text-[#FDCC0D] font-bold mb-2">4. LORE ESTRATÉGICO (Story)</h3>
-                        <input type="text" id="cfg-enemy" value="El Contenido Estático" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-sm text-white mb-2" placeholder="Enemigo">
-                        <input type="text" id="cfg-goal" value="Retención Masiva" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-sm text-white mb-2" placeholder="Recompensa">
-                        <div class="flex gap-2">
-                            <input type="text" id="cfg-btnA" value="ATACAR CON 3D" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-xs text-white" placeholder="Botón A">
-                            <input type="text" id="cfg-btnB" value="CREAR GAMING" oninput="syncConfig()" class="w-full bg-black border border-gray-600 p-2 text-xs text-white" placeholder="Botón B">
-                        </div>
-                    </div>
-
-                </div>
-
-                <div class="mt-6 flex gap-4">
-                    <button onclick="switchMode('play')" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 rounded">← PROBAR EN PLAY</button>
-                    <button onclick="exportHTML()" class="flex-1 sgx-btn !bg-[#FDCC0D] !text-black">💾 EMPAQUETAR HTML</button>
-                </div>
-            </div>
-        </main>
-
-    </div>
-
-    <script>
-        // ==========================================
-        // CONFIGURACIÓN GLOBAL (Atada al BUILDER)
-        // ==========================================
-        const Config = {
-            brand: 'Spatialgineers',
-            spark: { gravity: 0.03, obstacleSpeed: 0.1, jumpForce: 0.4 },
-            story: { enemy: 'El Contenido Estático', goal: 'Retención Masiva', btnA: 'ATACAR CON 3D', btnB: 'CREAR GAMING' },
-            shader: 'clean'
-        };
-
-        // ==========================================
-        // THREE.JS ENGINE CORE
-        // ==========================================
-        let scene, camera, renderer, orbitControls;
-        let coreGroup, coreMesh, wireMesh;
-        let particlesSystem, obstacles = [];
-        let lights = {};
-        
-        // Game State Variables
-        let isGameActive = false;
-        let velocityY = 0;
-        let score = 0;
-
-        // Shader clones
-        let glitchClones = [];
-
-        function init3D() {
+        function initEngine() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x050505, 0.025);
+            scene.background = new THREE.Color(0x0a0a0a); 
+            scene.add(currentModel);
 
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(-2, 0, 7);
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 5000);
+            camera.position.set(5, 5, 5);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
             document.getElementById('canvas-container').appendChild(renderer.domElement);
 
-            orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
-            orbitControls.enableDamping = true;
-            orbitControls.dampingFactor = 0.05;
+            // ESTUDIO HDRI (Fundamental para reflejos físicos)
+            const pmremGenerator = new THREE.PMREMGenerator(renderer);
+            pmremGenerator.compileEquirectangularShader();
+            envTexture = pmremGenerator.fromScene(new RoomEnvironment()).texture;
+            scene.environment = envTexture; 
 
-            // CORE OBJECT (El Asset o la nave)
-            coreGroup = new THREE.Group();
-            scene.add(coreGroup);
+            // Luces de 3 Puntos 
+            mainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            mainLight.position.set(5, 10, 7);
+            scene.add(mainLight);
 
-            const geom = new THREE.TorusKnotGeometry(1.2, 0.4, 128, 16);
-            const mat = new THREE.MeshStandardMaterial({ color: '#32527B', roughness: 0.2, metalness: 0.8 });
-            coreMesh = new THREE.Mesh(geom, mat);
-            coreGroup.add(coreMesh);
-
-            wireMesh = new THREE.Mesh(geom, new THREE.MeshBasicMaterial({ color: '#FDCC0D', wireframe: true, transparent: true, opacity: 0 }));
-            coreGroup.add(wireMesh);
-
-            // ILUMINACIÓN
-            lights.ambient = new THREE.AmbientLight(0xffffff, 0.5);
-            scene.add(lights.ambient);
+            const fillLight = new THREE.DirectionalLight(0x00FFFF, 0.5);
+            fillLight.position.set(-5, 0, -5);
+            scene.add(fillLight);
             
-            lights.point1 = new THREE.PointLight(0xffffff, 2, 20);
-            lights.point1.position.set(5, 5, 5);
-            scene.add(lights.point1);
+            const backLight = new THREE.DirectionalLight(0xFDCC0D, 0.8);
+            backLight.position.set(0, -5, -10);
+            scene.add(backLight);
+            
+            scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-            lights.point2 = new THREE.PointLight(0x32527B, 2, 20);
-            lights.point2.position.set(-5, -5, -5);
-            scene.add(lights.point2);
+            const grid = new THREE.GridHelper(200, 100, 0x00FFFF, 0x222222);
+            grid.position.y = -0.01;
+            grid.material.opacity = 0.1;
+            grid.material.transparent = true;
+            scene.add(grid);
 
-            // PARTÍCULAS BASE
-            const pGeom = new THREE.BufferGeometry();
-            const pCount = 2000;
-            const posArray = new Float32Array(pCount * 3);
-            for(let i=0; i<pCount*3; i++) posArray[i] = (Math.random() - 0.5) * 30;
-            pGeom.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-            particlesSystem = new THREE.Points(pGeom, new THREE.PointsMaterial({ size: 0.05, color: 0xffffff, transparent: true, opacity: 0.5 }));
-            scene.add(particlesSystem);
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.0;
 
-            // GAME INPUTS (Saltar)
-            window.addEventListener('pointerdown', (e) => {
-                if(e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && isGameActive) {
-                    jump();
-                }
+            // SETUP MATERIAL BASE UNIFICADO (Evita crashear la GPU recreando materiales)
+            globalPBRMaterial = new THREE.MeshPhysicalMaterial({ 
+                color: 0x888888, 
+                roughness: 0.3, 
+                metalness: 0.2, 
+                clearcoat: 0.0,
+                envMap: envTexture, 
+                envMapIntensity: 2.0, 
+                side: THREE.DoubleSide
             });
-            window.addEventListener('keydown', (e) => {
-                if(e.code === 'Space' && isGameActive) jump();
-            });
 
+            window.addEventListener('resize', onWindowResize);
+            setupInteraction();
             animate();
         }
 
-        function jump() {
-            velocityY = Config.spark.jumpForce;
-        }
+        // --- RUTEO DE EVENTOS ---
+        function setupInteraction() {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => document.body.addEventListener(evt, e => e.preventDefault()));
+            document.body.addEventListener('dragover', () => dropZone.classList.add('dragover'));
+            document.body.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+            document.body.addEventListener('drop', e => { dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
 
-        function spawnObstacle() {
-            if(!isGameActive) return;
-            const geom = new THREE.BoxGeometry(1, 4, 1);
-            const mat = new THREE.MeshStandardMaterial({ color: 0xff0055, emissive: 0x550000 });
-            const obs = new THREE.Mesh(geom, mat);
-            obs.position.set(15, (Math.random() - 0.5) * 6, 0); // Spawnea a la derecha
-            scene.add(obs);
-            obstacles.push(obs);
-            
-            setTimeout(spawnObstacle, 1500); // Siguiente en 1.5s
-        }
+            document.getElementById('file-upload').addEventListener('change', e => handleFile(e.target.files[0]));
+            document.getElementById('tex-upload').addEventListener('change', e => handleFile(e.target.files[0]));
+            document.getElementById('btn-reset').addEventListener('click', () => purgarMemoria(true));
 
-        function toggleGame() {
-            isGameActive = !isGameActive;
-            const btn = document.getElementById('btn-game-start');
-            
-            if(isGameActive) {
-                btn.innerText = "DETENER RETO";
-                btn.classList.replace('bg-green-500', 'bg-red-500');
-                orbitControls.enabled = false; // Desactivar órbita al jugar
-                camera.position.set(0,0,12); // Alejar cámara para ver en 2.5D
-                coreGroup.position.set(-4, 0, 0); // Nave a la izquierda
-                score = 0;
-                document.getElementById('game-score').innerText = score;
-                spawnObstacle();
-            } else {
-                btn.innerText = "INICIAR RETO";
-                btn.classList.replace('bg-red-500', 'bg-green-500');
-                orbitControls.enabled = true;
-                camera.position.set(-2,0,7);
-                coreGroup.position.set(0,0,0);
-                // Limpiar obstáculos
-                obstacles.forEach(o => scene.remove(o));
-                obstacles = [];
-            }
-        }
+            // Export Actions
+            document.getElementById('btn-snapshot').addEventListener('click', exportPNG);
+            document.getElementById('btn-record').addEventListener('click', toggleRecording);
 
-        function animate() {
-            requestAnimationFrame(animate);
-            const time = Date.now() * 0.001;
+            // Binds Continuos para PBR y Lights
+            const inputs = ['col-base', 'sl-rough', 'sl-metal', 'sl-clear', 'col-emissive', 'sl-emissive', 'sl-tile'];
+            inputs.forEach(id => document.getElementById(id).addEventListener('input', () => forcePBRUpdate()));
 
-            if(!isGameActive) {
-                // Rotación Showcase normal
-                coreGroup.rotation.x += 0.005;
-                coreGroup.rotation.y += 0.01;
-            } else {
-                // FÍSICAS SPARK (Flappy Logic)
-                velocityY -= Config.spark.gravity;
-                coreGroup.position.y += velocityY;
-                coreGroup.rotation.x = -velocityY; // Pitch visual al caer/saltar
+            document.getElementById('sl-light').addEventListener('input', e => mainLight.intensity = parseFloat(e.target.value));
+            document.getElementById('col-bg').addEventListener('input', e => scene.background.set(e.target.value));
 
-                // Límites de pantalla
-                if(coreGroup.position.y > 6) coreGroup.position.y = 6;
-                if(coreGroup.position.y < -6) { coreGroup.position.y = -6; velocityY = 0; }
-
-                // Mover obstáculos y Colisiones
-                for(let i = obstacles.length - 1; i >= 0; i--) {
-                    let obs = obstacles[i];
-                    obs.position.x -= Config.spark.obstacleSpeed;
-
-                    // Hitbox basico
-                    let dist = coreGroup.position.distanceTo(obs.position);
-                    if(dist < 2.5) {
-                        // Colisión: Efecto visual y resta puntos
-                        obs.material.emissive.setHex(0xffffff);
-                        score -= 5;
-                        document.getElementById('game-score').innerText = score;
-                        scene.remove(obs);
-                        obstacles.splice(i, 1);
-                    } else if (obs.position.x < -6 && !obs.passed) {
-                        // Pasó el obstáculo
-                        obs.passed = true;
-                        score += 10;
-                        document.getElementById('game-score').innerText = score;
-                    } else if (obs.position.x < -15) {
-                        scene.remove(obs);
-                        obstacles.splice(i, 1);
-                    }
-                }
-            }
-
-            // STAGE (Shaders Globales Procedurales)
-            const positions = particlesSystem.geometry.attributes.position.array;
-            
-            if(Config.shader === 'fire') {
-                // Fuego Sube
-                for(let i=1; i<2000*3; i+=3) {
-                    positions[i] += 0.1;
-                    if(positions[i] > 15) positions[i] = -15;
-                }
-                lights.point1.intensity = 2 + Math.sin(time*10); // Pulso rojo
-                document.getElementById('canvas-container').style.filter = "sepia(1) hue-rotate(-30deg) saturate(3)";
-            } 
-            else if (Config.shader === 'cyberpunk') {
-                // Glitch Jitter en X
-                if(Math.random() > 0.9) coreGroup.position.x += (Math.random() - 0.5) * 0.5;
-                else if(!isGameActive) coreGroup.position.x = 0;
-                
-                for(let i=0; i<2000*3; i+=3) positions[i] += (Math.random()-0.5)*0.1; // Ruido
-                document.getElementById('canvas-container').style.filter = "contrast(1.5) saturate(2) hue-rotate(45deg)";
-            }
-            else {
-                // Clean
-                for(let i=1; i<2000*3; i+=3) {
-                    positions[i] -= 0.02; // Caen suave
-                    if(positions[i] < -15) positions[i] = 15;
-                }
-                document.getElementById('canvas-container').style.filter = "none";
-            }
-            particlesSystem.geometry.attributes.position.needsUpdate = true;
-
-            orbitControls.update();
-            renderer.render(scene, camera);
-        }
-
-        // ==========================================
-        // UI & STATE MANAGEMENT
-        // ==========================================
-        
-        function switchMode(mode) {
-            syncConfig(); // Asegurar que todo lo de build se guarde
-            
-            document.getElementById('tab-play').className = `sgx-btn ${mode === 'play' ? 'sgx-btn-active' : ''}`;
-            document.getElementById('tab-build').className = `sgx-btn ${mode === 'build' ? 'sgx-btn-active' : ''}`;
-            
-            document.getElementById('mode-play').classList.toggle('hidden-view', mode !== 'play');
-            document.getElementById('mode-build').classList.toggle('hidden-view', mode !== 'build');
-
-            if(mode === 'play') {
-                setPlayPillar('system'); // Reset a panel 1
-                applyConfigToPlay(); // Inyectar datos del Forge al visual de Play
-            } else {
-                if(isGameActive) toggleGame(); // Apagar juego si entra a build
-            }
-        }
-
-        function setPlayPillar(pillar) {
-            ['system', 'showcase', 'spark', 'story', 'stage'].forEach(p => {
-                document.getElementById(`nav-${p}`).style.borderColor = p === pillar ? '#FDCC0D' : 'transparent';
-                document.getElementById(`nav-${p}`).style.color = p === pillar ? '#FDCC0D' : 'white';
-                document.getElementById(`play-${p}`).classList.toggle('hidden-view', p !== pillar);
+            // Físicas Toggles
+            document.getElementById('tg-rotate').addEventListener('change', e => {
+                flags.rotate = e.target.checked;
+                controls.autoRotate = flags.rotate;
             });
-            // Stop game si sales de Spark
-            if(pillar !== 'spark' && isGameActive) toggleGame();
+            document.getElementById('tg-levitate').addEventListener('change', e => { 
+                flags.levitate = e.target.checked; 
+                if(!flags.levitate && currentModel.children.length > 0) currentModel.position.y = currentModel.userData.baseY || 0; 
+            });
+            document.getElementById('tg-wire').addEventListener('change', e => forcePBRUpdate());
+
+            // Cinematic Mode
+            btnCinematic.addEventListener('click', () => {
+                flags.ui = !flags.ui;
+                hud.classList.toggle('hidden', !flags.ui);
+                document.getElementById('icon-cine').className = flags.ui ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+                btnCinematic.classList.toggle('text-white', !flags.ui);
+                btnCinematic.classList.toggle('text-[#00FFFF]', flags.ui);
+            });
+
+            // Presets Tácticos
+            document.querySelectorAll('.mat-preset').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    document.querySelectorAll('.mat-preset').forEach(b => b.classList.remove('active'));
+                    e.currentTarget.classList.add('active');
+                    applyPreset(e.currentTarget.dataset.mat);
+                });
+            });
         }
 
-        // Leer inputs de Showcase
-        function updateCoreMaterial() {
-            coreMesh.material.color.set(document.getElementById('play-color').value);
-            coreMesh.material.roughness = parseFloat(document.getElementById('play-rough').value);
-            coreMesh.material.metalness = parseFloat(document.getElementById('play-metal').value);
-            wireMesh.material.opacity = document.getElementById('play-wireframe').checked ? 0.4 : 0;
-        }
-
-        // Shaders
-        function applyShader(type) {
-            Config.shader = type;
+        // --- SISTEMA DE GESTIÓN DE MEMORIA (ANTI-CRASH) ---
+        function purgarMemoria(fullReset = false) {
+            if (currentModel && currentModel.children.length > 0) {
+                currentModel.traverse((child) => {
+                    if (child.isMesh && child.geometry) child.geometry.dispose();
+                });
+                scene.remove(currentModel);
+                currentModel = new THREE.Group();
+                scene.add(currentModel);
+            }
+            allMeshes = [];
+            originalMaterialsMap.clear();
             
-            // Reset lights & material to default before applying shader
-            lights.point1.color.setHex(0xffffff);
-            lights.point2.color.setHex(0x32527B);
-            coreMesh.material.emissive.setHex(0x000000);
-            scene.fog.color.setHex(0x050505);
-
-            if(type === 'fire') {
-                lights.point1.color.setHex(0xff3300);
-                lights.point2.color.setHex(0xff0000);
-                coreMesh.material.emissive.setHex(0x330500);
-                scene.fog.color.setHex(0x2a0000);
-            } else if (type === 'cyberpunk') {
-                lights.point1.color.setHex(0x00ffff);
-                lights.point2.color.setHex(0xff00ff);
-                coreMesh.material.emissive.setHex(0x002222);
+            if (fullReset) {
+                document.getElementById('file-upload').value = "";
+                document.getElementById('tex-upload').value = "";
+                if(customUserTexture) {
+                    customUserTexture.dispose();
+                    customUserTexture = null;
+                }
+                currentExtension = '';
+                texControls.classList.add('hidden');
+                hud.classList.add('hidden');
+                btnCinematic.classList.add('hidden');
+                errorText.classList.add('hidden');
+                dropZone.classList.remove('hidden');
+                if(isRecording) toggleRecording(); 
+                
+                // Reiniciar el material base para evitar contaminación
+                applyPreset('mate');
             }
         }
 
-        // Story interaccion
-        function triggerStory(choice) {
-            const btn = document.getElementById(`disp-btn${choice}`);
-            btn.classList.add('bg-[#FDCC0D]', 'text-black');
+        // --- INGESTA UNIVERSAL (LIBRE DE CÁLCULOS PESADOS) ---
+        function handleFile(file) {
+            if (!file) return;
+            const filename = file.name.toLowerCase();
             
-            // Cambia el shader o el entorno basado en decision
-            if(choice === 'A') applyShader('fire');
-            if(choice === 'B') applyShader('cyberpunk');
+            if (filename.match(/\.(jpg|jpeg|png|webp)$/)) {
+                loadCustomTexture(file);
+                return;
+            }
+
+            const ext = filename.split('.').pop();
+            currentExtension = ext; 
             
-            setTimeout(() => btn.classList.remove('bg-[#FDCC0D]', 'text-black'), 500);
+            purgarMemoria(false);
+
+            document.getElementById('asset-name').innerText = file.name;
+            dropZone.classList.add('hidden');
+            hud.classList.add('hidden');
+            btnCinematic.classList.add('hidden');
+            loadingScreen.classList.remove('hidden');
+            errorText.classList.add('hidden');
+            loadText.innerText = "FORJANDO MATRIZ 3D...";
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    parseGeometry(e.target.result, ext);
+                } catch (err) {
+                    showErrorLog(err);
+                }
+            };
+            reader.onerror = () => showErrorLog("File Reader Error");
+
+            if (ext === 'obj') reader.readAsText(file);
+            else reader.readAsArrayBuffer(file);
         }
 
-        // Sincronizar Formulario Build -> Config Global
-        function syncConfig() {
-            Config.brand = document.getElementById('cfg-brand').value || 'Spatialgineers';
-            Config.spark.gravity = parseFloat(document.getElementById('cfg-gravity').value);
-            Config.spark.obstacleSpeed = parseFloat(document.getElementById('cfg-speed').value);
-            
-            Config.story.enemy = document.getElementById('cfg-enemy').value;
-            Config.story.goal = document.getElementById('cfg-goal').value;
-            Config.story.btnA = document.getElementById('cfg-btnA').value;
-            Config.story.btnB = document.getElementById('cfg-btnB').value;
+        function showErrorLog(err) {
+            console.error("SGX MATRIX ERROR:", err);
+            errorText.classList.remove('hidden');
+            loadText.innerText = "SISTEMA COMPROMETIDO";
+            setTimeout(() => purgarMemoria(true), 3500);
         }
 
-        // Inyectar Config Global -> Play UI
-        function applyConfigToPlay() {
-            document.getElementById('sys-brand-display').innerText = Config.brand.toUpperCase();
-            document.getElementById('disp-grav').innerText = Config.spark.gravity;
-            document.getElementById('disp-spd').innerText = Config.spark.obstacleSpeed;
-            
-            document.getElementById('disp-enemy').innerText = Config.story.enemy.toUpperCase();
-            document.getElementById('disp-goal').innerText = Config.story.goal.toUpperCase();
-            document.getElementById('disp-btnA').innerText = Config.story.btnA.toUpperCase();
-            document.getElementById('disp-btnB').innerText = Config.story.btnB.toUpperCase();
+        function generateFastUVs(geometry) {
+            if (geometry.attributes.uv) return; 
+            const pos = geometry.attributes.position;
+            const uvs = new Float32Array(pos.count * 2);
+            geometry.computeBoundingBox();
+            const bbox = geometry.boundingBox;
+            const rangeX = bbox.max.x - bbox.min.x || 1;
+            const rangeY = bbox.max.y - bbox.min.y || 1;
+            for (let i = 0; i < pos.count; i++) {
+                uvs[i * 2] = (pos.getX(i) - bbox.min.x) / rangeX;
+                uvs[i * 2 + 1] = (pos.getY(i) - bbox.min.y) / rangeY;
+            }
+            geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
         }
 
-        // Ventana Resize
-        window.addEventListener('resize', () => {
+        // --- NAKED MESH PROTOCOL ---
+        function parseGeometry(data, ext) {
+            let object = new THREE.Group();
+
+            if (ext === 'glb' || ext === 'gltf') {
+                new GLTFLoader().parse(data, '', (gltf) => assembleModel(gltf.scene), (err) => showErrorLog(err));
+                return; 
+            } 
+            else if (ext === 'obj') object = new OBJLoader().parse(data);
+            else if (ext === 'stl') {
+                const geo = new STLLoader().parse(data);
+                geo.computeVertexNormals(); 
+                object.add(new THREE.Mesh(geo));
+            } 
+            else if (ext === 'ply') {
+                const geo = new PLYLoader().parse(data);
+                geo.computeVertexNormals(); 
+                object.add(new THREE.Mesh(geo));
+            }
+            else if (ext === 'fbx') {
+                object = new FBXLoader().parse(data, '');
+            } else {
+                object = new OBJLoader().parse(new TextDecoder().decode(data));
+            }
+
+            assembleModel(object);
+        }
+
+        function loadCustomTexture(file) {
+            if (allMeshes.length === 0) return alert("Sube un modelo 3D primero.");
+            const url = URL.createObjectURL(file);
+            new THREE.TextureLoader().load(url, (tex) => {
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.wrapS = THREE.RepeatWrapping;
+                tex.wrapT = THREE.RepeatWrapping;
+                
+                // Hack para Orientación Correcta en GLB
+                if (currentExtension === 'glb' || currentExtension === 'gltf') {
+                    tex.flipY = false;
+                } else {
+                    tex.flipY = true;
+                }
+
+                if(customUserTexture) customUserTexture.dispose();
+                customUserTexture = tex;
+                
+                texControls.classList.remove('hidden');
+                document.querySelectorAll('.mat-preset').forEach(b => b.classList.remove('active'));
+                
+                // Forzamos el preset "Mate PBR" para poder ver la textura limpia sin reflejos del original
+                const customBtn = document.querySelector('[data-mat="mate"]');
+                if(customBtn) customBtn.classList.add('active'); 
+                
+                applyPreset('mate');
+            }, undefined, (err) => alert("Error cargando textura."));
+        }
+
+        function assembleModel(newMesh) {
+            if (!newMesh || (!newMesh.isMesh && newMesh.children.length === 0)) return showErrorLog("Geometría nula.");
+            let tVerts = 0, tFaces = 0;
+
+            newMesh.traverse((child) => {
+                if (child.isMesh) {
+                    allMeshes.push(child);
+                    
+                    // Asegurar UVs para modelos planos
+                    generateFastUVs(child.geometry);
+
+                    // SALVAR IP ORIGINAL PARA EL PRESET "ORIGINAL"
+                    if (child.material) {
+                        originalMaterialsMap.set(child, child.material); 
+                    } else {
+                        originalMaterialsMap.set(child, new THREE.MeshStandardMaterial({color: 0x888888}));
+                    }
+
+                    // APLICAMOS NUESTRO MATERIAL PBR DESNUDO A TODAS LAS MALLAS DEL GLB
+                    child.material = globalPBRMaterial;
+
+                    if(child.geometry.index) tFaces += child.geometry.index.count / 3;
+                    else if (child.geometry.attributes.position) tFaces += child.geometry.attributes.position.count / 3;
+                    if (child.geometry.attributes.position) tVerts += child.geometry.attributes.position.count;
+                }
+            });
+
+            if (allMeshes.length === 0) return showErrorLog("El archivo no contenía mallas 3D válidas.");
+
+            document.getElementById('stat-verts').innerText = tVerts.toLocaleString();
+            currentModel.add(newMesh);
+
+            // AUTO-ENCUADRE
+            const box = new THREE.Box3().setFromObject(currentModel);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+
+            newMesh.position.set(-center.x, -center.y + (size.y / 2), -center.z);
+            currentModel.userData.baseY = currentModel.position.y;
+
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const cameraZ = Math.abs(maxDim / 2 / Math.tan(camera.fov * (Math.PI / 360))) * 1.5; 
+            
+            camera.position.set(cameraZ * 0.7, cameraZ * 0.4, cameraZ);
+            controls.target.set(0, size.y / 2, 0);
+            controls.update();
+
+            loadingScreen.classList.add('hidden');
+            hud.classList.remove('hidden');
+            btnCinematic.classList.remove('hidden');
+            
+            // Inicia mostrando su textura Original
+            document.querySelectorAll('.mat-preset').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-mat="mate"]').classList.add('active');
+            applyPreset('mate'); 
+        }
+
+        // --- SISTEMA DE WIPES Y PRESETS PBR (ESTABILIZADO) ---
+        function applyPreset(type) {
+            currentPreset = type;
+            if(!globalPBRMaterial || allMeshes.length === 0) return;
+
+            // Restablecer Material a las mallas (Control de Modo Original vs PBR)
+            if (type === 'original') {
+                allMeshes.forEach(m => {
+                    if(originalMaterialsMap.has(m)) m.material = originalMaterialsMap.get(m);
+                });
+                return; // En el modo original no tocamos sliders
+            } else {
+                // Volvemos a enganchar todas las mallas al material Global PBR
+                allMeshes.forEach(m => m.material = globalPBRMaterial);
+            }
+
+            // WIPE ESTRICTO DEL SHADER GLOBAL
+            globalPBRMaterial.map = null;
+            globalPBRMaterial.bumpMap = null;
+            globalPBRMaterial.transparent = false;
+            globalPBRMaterial.wireframe = false;
+            globalPBRMaterial.emissive.setHex(0x000000);
+            globalPBRMaterial.emissiveIntensity = 0;
+            globalPBRMaterial.envMapIntensity = 2.0; 
+            globalPBRMaterial.opacity = 1;
+            globalPBRMaterial.blending = THREE.NormalBlending;
+            globalPBRMaterial.transmission = 0;
+            globalPBRMaterial.clearcoat = 0;
+            globalPBRMaterial.ior = 1.5;
+
+            // Reset UI
+            document.getElementById('col-emissive').value = "#000000";
+            document.getElementById('sl-emissive').value = "0";
+            document.getElementById('tg-wire').checked = false;
+
+            switch(type) {
+                case 'mate':
+                    document.getElementById('col-base').value = customUserTexture ? "#FFFFFF" : "#888888";
+                    document.getElementById('sl-rough').value = 0.5;
+                    document.getElementById('sl-metal').value = 0.0;
+                    document.getElementById('sl-clear').value = 0.0;
+                    break;
+
+                case 'glass':
+                    document.getElementById('col-base').value = "#050505";
+                    document.getElementById('sl-rough').value = 0.0;
+                    document.getElementById('sl-metal').value = 0.9;
+                    document.getElementById('sl-clear').value = 1.0;
+                    globalPBRMaterial.transmission = 0.98;
+                    globalPBRMaterial.ior = 2.4;
+                    globalPBRMaterial.thickness = 2.0;
+                    globalPBRMaterial.envMapIntensity = 4.0;
+                    break;
+
+                case 'gold':
+                    document.getElementById('col-base').value = "#FDCC0D";
+                    document.getElementById('sl-rough').value = 0.15;
+                    document.getElementById('sl-metal').value = 1.0;
+                    document.getElementById('sl-clear').value = 0.2;
+                    break;
+
+                case 'holo':
+                    document.getElementById('col-base').value = "#000000";
+                    document.getElementById('col-emissive').value = "#00FFFF";
+                    document.getElementById('sl-emissive').value = 1.5;
+                    document.getElementById('tg-wire').checked = true;
+                    globalPBRMaterial.transparent = true;
+                    globalPBRMaterial.opacity = 0.6;
+                    globalPBRMaterial.blending = THREE.AdditiveBlending;
+                    break;
+            }
+            
+            forcePBRUpdate();
+        }
+
+        // --- ACTUALIZADOR DE SHADER ---
+        function forcePBRUpdate() {
+            if (!globalPBRMaterial || currentPreset === 'original') return;
+
+            const cBase = document.getElementById('col-base').value;
+            const r = parseFloat(document.getElementById('sl-rough').value);
+            const m = parseFloat(document.getElementById('sl-metal').value);
+            const cl = parseFloat(document.getElementById('sl-clear').value);
+            const cGlow = document.getElementById('col-emissive').value;
+            const eInt = parseFloat(document.getElementById('sl-emissive').value);
+            const w = document.getElementById('tg-wire').checked;
+            
+            document.getElementById('val-rough').innerText = r.toFixed(2);
+            document.getElementById('val-metal').innerText = m.toFixed(2);
+            document.getElementById('val-clear').innerText = cl.toFixed(2);
+            document.getElementById('val-emissive').innerText = eInt.toFixed(1);
+
+            // Aplicar Propiedades al GPU
+            globalPBRMaterial.color.set(cBase);
+            globalPBRMaterial.roughness = r;
+            globalPBRMaterial.metalness = m;
+            globalPBRMaterial.clearcoat = cl;
+            
+            globalPBRMaterial.emissive.set(cGlow);
+            globalPBRMaterial.emissiveIntensity = eInt;
+            globalPBRMaterial.wireframe = w;
+
+            // Inyección de Textura Custom
+            if (customUserTexture && currentPreset !== 'holo') {
+                globalPBRMaterial.map = customUserTexture;
+                globalPBRMaterial.bumpMap = customUserTexture;
+                globalPBRMaterial.bumpScale = 0.05;
+            } else {
+                globalPBRMaterial.map = null;
+                globalPBRMaterial.bumpMap = null;
+            }
+
+            if (customUserTexture && !document.getElementById('tex-controls').classList.contains('hidden')) {
+                const tile = parseFloat(document.getElementById('sl-tile').value);
+                document.getElementById('val-tile').innerText = tile.toFixed(1);
+                customUserTexture.repeat.set(tile, tile);
+            }
+
+            globalPBRMaterial.needsUpdate = true;
+        }
+
+        // --- EXPORTACIÓN MP4 / PNG ---
+        function exportPNG() {
+            try {
+                renderer.render(scene, camera);
+                const dataURL = renderer.domElement.toDataURL('image/png', 1.0);
+                const link = document.createElement('a');
+                link.download = `SGX_3DFORGE_${Date.now()}.png`;
+                link.href = dataURL;
+                link.click();
+            } catch (err) {
+                alert("Error de buffer al capturar.");
+            }
+        }
+
+        function toggleRecording() {
+            const recIcon = document.getElementById('rec-icon');
+            const recText = document.getElementById('rec-text');
+            const btn = document.getElementById('btn-record');
+
+            if (!isRecording) {
+                try {
+                    const stream = renderer.domElement.captureStream(30); 
+                    let mimeType = 'video/webm;codecs=vp9';
+                    let extension = 'webm';
+                    
+                    if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
+                        mimeType = 'video/mp4;codecs=avc1'; 
+                        extension = 'mp4';
+                    }
+
+                    const options = { mimeType: mimeType, videoBitsPerSecond: 10000000 }; 
+                    mediaRecorder = new MediaRecorder(stream, options);
+                    
+                    recordedChunks = [];
+                    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = `SGX_3DFORGE_${Date.now()}.${extension}`;
+                        link.href = url;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                    };
+
+                    mediaRecorder.start(100); 
+                    isRecording = true;
+                    
+                    recIcon.classList.add('rec-blink');
+                    recText.innerText = "DETENER GRABACIÓN";
+                    btn.classList.add('sgx-btn-red');
+                } catch(e) {
+                    alert("Tu navegador no soporta captura de video nativa.");
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                
+                recIcon.classList.remove('rec-blink');
+                recText.innerText = "GRABAR MP4";
+                btn.classList.remove('sgx-btn-red');
+            }
+        }
+
+        function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        init3D();
-        applyConfigToPlay();
-
-        // ==========================================
-        // EXPORTADOR DEL ECOSISTEMA
-        // ==========================================
-        function exportHTML() {
-            syncConfig();
-            const sOpen = "<scr" + "ipt>"; const sClose = "</scr" + "ipt>";
-            
-            const html = `<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${Config.brand} | SGX Experience</title>
-    <script src="https://cdn.tailwindcss.com">${sClose}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">${sClose}
-    <style>
-        body { margin:0; overflow:hidden; background:#050505; color:white; font-family:sans-serif; user-select:none; }
-        #canvas-bg { position:absolute; inset:0; z-index:0; }
-        .glass { background:rgba(0,0,0,0.7); border:1px solid #32527B; backdrop-filter:blur(10px); }
-        .hud { position:absolute; z-index:10; pointer-events:auto; }
-    </style>
-</head>
-<body>
-    <div id="canvas-bg"></div>
-    
-    <div class="hud inset-x-0 top-0 p-6 flex justify-between items-start pointer-events-none">
-        <h1 class="text-3xl font-bold uppercase tracking-widest">${Config.brand}</h1>
-        <div class="glass px-6 py-2 rounded text-center pointer-events-auto">
-            <p class="text-xs text-[#FDCC0D]">MÉTRICA</p>
-            <p class="text-3xl font-bold" id="score">0</p>
-        </div>
-    </div>
-
-    <div class="hud inset-x-0 bottom-10 flex justify-center w-full pointer-events-none">
-        <div class="glass p-6 rounded-lg text-center max-w-lg w-full pointer-events-auto border-t-4 border-[#FDCC0D]">
-            <h2 class="text-xl font-bold mb-1">Misión: Vencer a ${Config.story.enemy}</h2>
-            <p class="text-sm text-gray-300 mb-4">Haz CLICK o ESPACIO para saltar y alcanzar <b>${Config.story.goal}</b>.</p>
-            <div class="flex gap-2">
-                <button class="flex-1 bg-[#32527B] text-white py-2 rounded font-bold text-xs" onclick="location.reload()">${Config.story.btnA}</button>
-                <button class="flex-1 bg-[#FDCC0D] text-black py-2 rounded font-bold text-xs" onclick="location.reload()">${Config.story.btnB}</button>
-            </div>
-        </div>
-    </div>
-
-    ${sOpen}
-        let scene, camera, renderer, core;
-        let obstacles = [], velocityY = 0, score = 0;
-        let isGame = true;
-
-        function init() {
-            scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x050505, 0.02);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.set(0,0,12);
-            renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('canvas-bg').appendChild(renderer.domElement);
-
-            core = new THREE.Mesh(new THREE.TorusKnotGeometry(1.2,0.4,64,16), new THREE.MeshStandardMaterial({color:'#32527B', roughness:0.2}));
-            core.position.x = -4; scene.add(core);
-
-            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-            const l1 = new THREE.PointLight(0xffffff,2); l1.position.set(5,5,5); scene.add(l1);
-            
-            // Shader effect logic
-            if('${Config.shader}' === 'cyberpunk') { document.body.style.filter = 'contrast(1.5) hue-rotate(45deg)'; l1.color.setHex(0x00ffff); }
-            if('${Config.shader}' === 'fire') { document.body.style.filter = 'sepia(1) hue-rotate(-30deg) saturate(3)'; l1.color.setHex(0xff3300); }
-
-            window.addEventListener('pointerdown', jump);
-            window.addEventListener('keydown', (e)=> { if(e.code==='Space') jump(); });
-            
-            spawn(); animate();
-        }
-
-        function jump() { velocityY = ${Config.spark.jumpForce}; }
-        
-        function spawn() {
-            const obs = new THREE.Mesh(new THREE.BoxGeometry(1,4,1), new THREE.MeshStandardMaterial({color:0xff0055}));
-            obs.position.set(15, (Math.random()-0.5)*6, 0);
-            scene.add(obs); obstacles.push(obs);
-            setTimeout(spawn, 1500);
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            velocityY -= ${Config.spark.gravity};
-            core.position.y += velocityY; core.rotation.x = -velocityY;
-            if(core.position.y > 6) core.position.y = 6;
-            if(core.position.y < -6) { core.position.y = -6; velocityY = 0; }
-
-            for(let i=obstacles.length-1; i>=0; i--) {
-                let o = obstacles[i]; o.position.x -= ${Config.spark.obstacleSpeed};
-                if(core.position.distanceTo(o.position) < 2.5) {
-                    score -= 5; document.getElementById('score').innerText = score; scene.remove(o); obstacles.splice(i,1);
-                } else if(o.position.x < -6 && !o.passed) {
-                    o.passed = true; score += 10; document.getElementById('score').innerText = score;
-                } else if(o.position.x < -15) { scene.remove(o); obstacles.splice(i,1); }
+            const time = clock.getElapsedTime();
+            
+            if (flags.levitate && currentModel.children.length > 0) {
+                const baseY = currentModel.userData.baseY || 0;
+                currentModel.position.y = baseY + Math.sin(time * 1.5) * 0.015;
             }
+
+            if (currentPreset === 'holo' && globalPBRMaterial) {
+                globalPBRMaterial.opacity = 0.4 + (Math.sin(time * 4) * 0.4);
+            }
+
+            controls.update();
             renderer.render(scene, camera);
-        }
-        init();
-    ${sClose}
-</body>
-</html>`;
-            const blob = new Blob([html], {type: 'text/html'});
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = `SGX_${Config.brand.replace(/\s+/g, '_')}_Game.html`;
-            a.click();
         }
     </script>
 </body>
